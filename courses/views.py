@@ -479,6 +479,22 @@ def initier_paiement(request):
     provider_map = {'airtel': 'AIRTEL', 'orange': 'ORANGE', 'mpesa': 'MPESA'}
     provider_api = provider_map.get(reseau, reseau.upper())
 
+    # ── Mode démo : bypass API si MAISHAPAY_DEMO_MODE=True ──
+    if getattr(settings, 'MAISHAPAY_DEMO_MODE', False):
+        logger.info(f"Transaction {reference}: MODE DÉMO actif — activation immédiate")
+        transaction.marquer_reussi({
+            'mode': 'demo',
+            'message': 'Mode démo activé — activation sans appel API MaishaPay',
+        })
+        abonnement.activer(jours=getattr(settings, 'MAISHAPAY_DUREE_ABONNEMENT_JOURS', 30))
+        messages.success(
+            request,
+            f'✅ Paiement de {montant} CDF confirmé (mode démo). '
+            f'Votre abonnement est actif pour 30 jours.'
+        )
+        request.session['gm_derniere_reference'] = reference
+        return redirect('courses:dashboard')
+
     if api_url and public_key and secret_key:
         try:
             payload = {
