@@ -409,3 +409,30 @@ class ProlongationAbonnement(models.Model):
     def __str__(self):
         return f"Prolongation +{self.jours_ajoutes}j pour {self.abonnement.utilisateur.username} par {self.effectue_par}"
 
+
+class ParametrePlateforme(models.Model):
+    """Paramètres configurables de la plateforme (singleton)."""
+    monnaie = models.CharField(
+        max_length=3,
+        choices=[('CDF', 'Franc congolais (CDF)'), ('USD', 'Dollar américain (USD)')],
+        default='CDF',
+    )
+    montant_abonnement = models.DecimalField(
+        max_digits=10, decimal_places=2, default=10000,
+        help_text='Montant de l\'abonnement mensuel',
+    )
+    duree_abonnement_jours = models.PositiveIntegerField(default=30)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Paramètre de la plateforme'
+        verbose_name_plural = 'Paramètres de la plateforme'
+
+    def __str__(self):
+        return f"{self.montant_abonnement} {self.monnaie} / {self.duree_abonnement_jours}j"
+
+    @classmethod
+    def get_instance(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+

@@ -64,7 +64,7 @@
                 </div>
                 <div class="text-right">
                     <div class="text-3xl font-extrabold text-white">{{ montant|floatformat:0 }}</div>
-                    <div class="text-xs text-stone-300">CDF / mois</div>
+                    <div class="text-xs text-stone-300">{{ monnaie }} / mois</div>
                 </div>
             </div>
         </div>
@@ -160,14 +160,14 @@
             <!-- Montant -->
             <div class="bg-stone-50 rounded-xl p-4 flex items-center justify-between">
                 <span class="text-sm text-stone-500">Montant à payer</span>
-                <span class="text-xl font-extrabold text-brand-teal">{{ montant|floatformat:0 }} CDF</span>
+                <span class="text-xl font-extrabold text-brand-teal">{{ montant|floatformat:0 }} {{ monnaie }}</span>
             </div>
 
             <!-- Bouton -->
             <button type="submit"
                     class="w-full bg-brand-copper hover:bg-brand-copper-dark text-white font-bold py-4 rounded-xl
                            transition-all shadow-lg shadow-brand-copper/20 text-lg">
-                💳 Payer {{ montant|floatformat:0 }} CDF
+                💳 Payer {{ montant|floatformat:0 }} {{ monnaie }}
             </button>
 
             <p class="text-xs text-center text-stone-400">

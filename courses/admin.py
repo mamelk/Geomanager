@@ -4,6 +4,7 @@ from .models import (
     TentativeExamen, Inscription, ProgressionLecon,
     VideoLecon, RessourceComplementaire, Commentaire,
     Abonnement, TransactionPaiement, ProlongationAbonnement,
+    ParametrePlateforme,
 )
 
 
@@ -100,3 +101,16 @@ class ProlongationAbonnementAdmin(admin.ModelAdmin):
     list_filter = ('jours_ajoutes',)
     search_fields = ('abonnement__utilisateur__username', 'motif')
     readonly_fields = ('date_prolongation',)
+
+
+@admin.register(ParametrePlateforme)
+class ParametrePlateformeAdmin(admin.ModelAdmin):
+    list_display = ('monnaie', 'montant_abonnement', 'duree_abonnement_jours')
+    readonly_fields = ('date_modification',)
+
+    def has_add_permission(self, request):
+        # Singleton : empêcher la création multiples
+        return not ParametrePlateforme.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False

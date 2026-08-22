@@ -373,20 +373,18 @@ def verifier_certificat_view(request):
 #  PAIEMENT & ABONNEMENTS
 # ═══════════════════════════════════════
 import uuid
-from .models import Abonnement, TransactionPaiement, ProlongationAbonnement
+from .models import Abonnement, TransactionPaiement, ProlongationAbonnement, ParametrePlateforme
 
 
 def _verifier_signature_maishapay(payload_bytes, signature_header):
     """
     Vérifie la signature HMAC envoyée par MaishaPay dans le header X-MaishaPay-Signature.
     Retourne True si la signature est valide, False sinon.
-    Si pas de SECRET_KEY configuré, on accepte (mode dev).
     """
     secret = getattr(settings, 'MAISHAPAY_SECRET_KEY', '')
     if not secret:
-        # Pas de clé secrète configurée → mode développement
-        logger.warning('MAISHAPAY_SECRET_KEY non configurée — signature non vérifiée (mode dev)')
-        return True
+        logger.error('MAISHAPAY_SECRET_KEY non configurée — callback rejeté (sécurité)')
+        return False
     if not signature_header:
         logger.warning('Callback MaishaPay sans header de signature')
         return False
@@ -411,7 +409,9 @@ def page_paiement(request):
         }
 
     reseaux = Abonnement.RESEAU_CHOICES
-    montant = getattr(settings, 'MAISHAPAY_MONTANT_ABONNEMENT', 10000)
+    params = ParametrePlateforme.get_instance()
+    montant = params.montant_abonnement
+    monnaie = params.monnaie
 
     # Récupérer la dernière référence de transaction (pour le polling JS)
     derniere_reference = request.session.pop('gm_derniere_reference', None)
@@ -421,6 +421,7 @@ def page_paiement(request):
         'statut_abonnement': statut_abonnement,
         'reseaux': reseaux,
         'montant': montant,
+        'monnaie': monnaie,
         'derniere_reference': derniere_reference,
     })
 
@@ -432,16 +433,23 @@ def initier_paiement(request):
         return redirect('courses:page_paiement')
 
     reseau = request.POST.get('reseau', 'airtel')
-    telephone = request.POST.get('telephone', '').strip()
+    valid_reseaux = dict(Abonnement.RESEAU_CHOICES).keys()
+    if reseau not in valid_reseaux:
+        reseau = 'airtel'
+    telephone = request.POST.get('telephone', '').strip()[:20]
 
     if not telephone:
         messages.error(request, 'Veuillez saisir votre numéro de téléphone.')
         return redirect('courses:page_paiement')
 
     # Nettoyer le numéro (enlever espaces et tirets, garder le +)
-    telephone = telephone.replace(' ', '').replace('-', '')
+    import re
+    telephone = re.sub(r'[^0-9+]', '', telephone)
     if not telephone.startswith('+'):
         telephone = '+' + telephone
+    if len(telephone) < 10 or len(telephone) > 15:
+        messages.error(request, 'Numéro de téléphone invalide.')
+        return redirect('courses:page_paiement')
 
     # Récupérer ou créer l'abonnement
     abonnement, _ = Abonnement.objects.get_or_create(
@@ -456,18 +464,19 @@ def initier_paiement(request):
 
     # Créer la transaction
     reference = f"GM-{timezone.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
-    montant = getattr(settings, 'MAISHAPAY_MONTANT_ABONNEMENT', 10000)
+    params = ParametrePlateforme.get_instance()
+    montant = params.montant_abonnement
 
     transaction = TransactionPaiement.objects.create(
         abonnement=abonnement,
         reference_externe=reference,
         montant=montant,
-        devise='CDF',
+        devise=params.monnaie,
         telephone=telephone,
         reseau=reseau,
     )
 
-    logger.info(f"Transaction {reference} créée pour {telephone} ({reseau}) — {montant} CDF")
+    logger.info(f"Transaction {reference} créée pour {telephone} ({reseau}) — {montant} {params.monnaie}")
 
     # ── Appel à l'API MaishaPay Sandbox ──
     api_url = getattr(settings, 'MAISHAPAY_API_URL', '')
@@ -489,8 +498,8 @@ def initier_paiement(request):
         abonnement.activer(jours=getattr(settings, 'MAISHAPAY_DUREE_ABONNEMENT_JOURS', 30))
         messages.success(
             request,
-            f'✅ Paiement de {montant} CDF confirmé (mode démo). '
-            f'Votre abonnement est actif pour 30 jours.'
+            f'✅ Paiement de {montant} {params.monnaie} confirmé (mode démo). '
+            f'Votre abonnement est actif pour {params.duree_abonnement_jours} jours.'
         )
         request.session['gm_derniere_reference'] = reference
         return redirect('courses:dashboard')
@@ -504,7 +513,7 @@ def initier_paiement(request):
                 'gatewayMode': 0,
                 'transactionReference': reference,
                 'amount': float(montant),
-                'currency': 'CDF',
+                'currency': params.monnaie,
                 'chanel': 'MOBILEMONEY',
                 'provider': provider_api,
                 'walletID': telephone,
@@ -534,7 +543,7 @@ def initier_paiement(request):
                 messages.success(
                     request,
                     f'Paiement initié. Vérifiez votre téléphone ({telephone}) '
-                    f'pour confirmer le transfert de {montant} CDF.'
+                    f'pour confirmer le transfert de {montant} {params.monnaie}.'
                 )
             else:
                 logger.error(f"Erreur API MaishaPay {reference}: HTTP {resp.status_code} — {resp.text[:300]}")
@@ -558,8 +567,8 @@ def initier_paiement(request):
         transaction.marquer_reussi({'mode': 'demo', 'message': 'Clé API non configurée — activation démo'})
         messages.success(
             request,
-            f'✅ Paiement de {montant} CDF confirmé (mode démo). '
-            f'Votre abonnement est actif pour 30 jours.'
+            f'✅ Paiement de {montant} {params.monnaie} confirmé (mode démo). '
+            f'Votre abonnement est actif pour {params.duree_abonnement_jours} jours.'
         )
 
     # Stocker la référence dans la session pour le polling côté client
@@ -1129,8 +1138,14 @@ def prolonger_abonnement(request, user_id):
         return redirect('courses:admin_apprenant_detail', user_id=user_id)
 
     apprenant = get_object_or_404(User, id=user_id, is_staff=False)
-    jours = int(request.POST.get('jours', 30))
-    motif = request.POST.get('motif', '').strip()
+    try:
+        jours = int(request.POST.get('jours', 30))
+        if jours < 1 or jours > 365:
+            raise ValueError
+    except (ValueError, TypeError):
+        messages.error(request, 'Nombre de jours invalide.')
+        return redirect('courses:admin_apprenant_detail', user_id=user_id)
+    motif = request.POST.get('motif', '').strip()[:255]
 
     # Récupérer ou créer l'abonnement
     abonnement, _ = Abonnement.objects.get_or_create(
