@@ -1,0 +1,494 @@
+{% extends "courses/base.html" %}
+{% block title %}{{ titre_page }} — Géomanager{% endblock %}
+
+{% block content %}
+<nav class="mb-6 text-sm text-stone-400 flex items-center gap-1.5">
+    <a href="{% url 'courses:admin_formations' %}" class="hover:text-amber-600 transition">Formations</a>
+    <span>›</span>
+    <span class="text-slate-700 font-medium">{{ titre_page }}</span>
+</nav>
+
+<div class="max-w-4xl mx-auto space-y-6">
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+
+    <!-- ══════ INFORMATIONS GÉNÉRALES ══════ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8">
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h2 class="text-lg font-bold text-slate-800">Informations Générales</h2>
+        </div>
+
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Titre de la formation *</label>
+                <input type="text" name="titre" value="{{ form.titre.value|default:'' }}" required
+                       class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none text-sm"
+                       placeholder="Ex: Géologie des gisements miniers">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Domaine d'expertise *</label>
+                <select name="domaine" required
+                        class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none text-sm bg-white">
+                    {% for val, label in form.fields.domaine.choices %}
+                        <option value="{{ val }}" {% if form.domaine.value == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Seuil de certification (%)</label>
+                <input type="number" name="seuil_certification" value="{{ form.seuil_certification.value|default:'70' }}"
+                       min="0" max="100" step="0.01"
+                       class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none text-sm">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Description détaillée</label>
+                <textarea name="description" rows="4"
+                          class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none text-sm"
+                          placeholder="Décrivez les objectifs et le contenu de cette formation...">{{ form.description.value|default:'' }}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Image de couverture</label>
+                <input type="file" name="image" accept="image/*"
+                       class="w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
+            </div>
+            <div class="flex items-end">
+                <div class="px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 text-sm">
+                    <span class="text-stone-400">Durée totale :</span>
+                    <span id="duree-totale" class="font-bold text-amber-600 ml-1">0 min</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════ VIDÉOS ══════ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8">
+        <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <h2 class="text-lg font-bold text-slate-800">Vidéos de formation</h2>
+            </div>
+            <button type="button" onclick="addVideo()" class="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold transition">
+                + Vidéo
+            </button>
+        </div>
+
+        <div id="videos-container" class="space-y-4">
+            {% for v in videos %}
+            <div class="video-block border border-stone-200 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-blue-500">Vidéo #{{ forloop.counter }}</span>
+                    <button type="button" onclick="removeBlock(this)" class="text-xs text-red-500 hover:text-red-600">✕ Supprimer</button>
+                </div>
+                <input type="text" name="video_titre" value="{{ v.titre }}" placeholder="Titre de la vidéo"
+                       class="w-full px-3 py-2.5 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-xs text-stone-400 mb-1 block">Fichier vidéo</label>
+                        <input type="file" name="video_fichier" accept="video/*"
+                               class="w-full text-xs text-stone-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700">
+                    </div>
+                    <div>
+                        <label class="text-xs text-stone-400 mb-1 block">Ou lien externe</label>
+                        <input type="url" name="video_url" value="{{ v.video_url|default:'' }}" placeholder="https://..."
+                               class="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs text-stone-400 mb-1 block">Durée (minutes)</label>
+                        <input type="number" name="video_duree" value="{{ v.duree_minutes }}" min="0"
+                               class="video-duree w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none"
+                               oninput="calcDureeTotale()">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Bloc template pour ajouter une vidéo -->
+        <template id="video-template">
+            <div class="video-block border border-stone-200 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-blue-500">Nouvelle vidéo</span>
+                    <button type="button" onclick="removeBlock(this)" class="text-xs text-red-500 hover:text-red-600">✕ Supprimer</button>
+                </div>
+                <input type="text" name="video_titre" placeholder="Titre de la vidéo"
+                       class="w-full px-3 py-2.5 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-xs text-stone-400 mb-1 block">Fichier vidéo</label>
+                        <input type="file" name="video_fichier" accept="video/*"
+                               class="w-full text-xs text-stone-500 file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700">
+                    </div>
+                    <div>
+                        <label class="text-xs text-stone-400 mb-1 block">Ou lien externe</label>
+                        <input type="url" name="video_url" placeholder="https://..."
+                               class="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs text-stone-400 mb-1 block">Durée (minutes)</label>
+                        <input type="number" name="video_duree" value="0" min="0"
+                               class="video-duree w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none"
+                               oninput="calcDureeTotale()">
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        {% if not videos %}
+        <p class="text-sm text-stone-400 text-center py-3" id="no-videos-msg">Ajoutez des vidéos pour cette formation.</p>
+        {% endif %}
+    </div>
+
+    <!-- ══════ RESSOURCES ══════ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8">
+        <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <h2 class="text-lg font-bold text-slate-800">Documents &amp; Liens</h2>
+            </div>
+            <button type="button" onclick="addRessource()" class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition">
+                + Ressource
+            </button>
+        </div>
+
+        <div id="ressources-container" class="space-y-4">
+            {% for r in ressources %}
+            <div class="ressource-block border border-stone-200 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-emerald-500">Ressource #{{ forloop.counter }}</span>
+                    <button type="button" onclick="removeBlock(this)" class="text-xs text-red-500 hover:text-red-600">✕ Supprimer</button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input type="text" name="ressource_titre" value="{{ r.titre }}" placeholder="Titre"
+                           class="px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                    <select name="ressource_type"
+                            class="px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none bg-white">
+                        <option value="fichier" {% if r.type_ressource == 'fichier' %}selected{% endif %}>Fichier (PDF/image)</option>
+                        <option value="lien" {% if r.type_ressource == 'lien' %}selected{% endif %}>Lien web</option>
+                    </select>
+                    <input type="url" name="ressource_lien" value="{{ r.lien_web|default:'' }}" placeholder="https://..."
+                           class="px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                </div>
+                <input type="file" name="ressource_fichier" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                       class="w-full text-xs text-stone-500 file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700">
+            </div>
+            {% endfor %}
+        </div>
+
+        <template id="ressource-template">
+            <div class="ressource-block border border-stone-200 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-emerald-500">Nouvelle ressource</span>
+                    <button type="button" onclick="removeBlock(this)" class="text-xs text-red-500 hover:text-red-600">✕ Supprimer</button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input type="text" name="ressource_titre" placeholder="Titre"
+                           class="px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                    <select name="ressource_type"
+                            class="px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none bg-white">
+                        <option value="fichier">Fichier (PDF/image)</option>
+                        <option value="lien">Lien web</option>
+                    </select>
+                    <input type="url" name="ressource_lien" placeholder="https://..."
+                           class="px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                </div>
+                <input type="file" name="ressource_fichier" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                       class="w-full text-xs text-stone-500 file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700">
+            </div>
+        </template>
+
+        {% if not ressources %}
+        <p class="text-sm text-stone-400 text-center py-3" id="no-ressources-msg">Ajoutez des PDF, images ou liens complémentaires.</p>
+        {% endif %}
+    </div>
+
+    <!-- ══════ EXAMEN QCM ══════ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8">
+        <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0c.46.308.97.463 1.503.463 1.571 0 2.97.915 3.686 2.278a1 1 0 01-1.837.717C12.927 5.66 11.627 5 10.5 5c-1.127 0-2.427.66-2.852 1.658a1 1 0 01-1.837-.717A5.99 5.99 0 018.25 5c.533 0 1.043.155 1.503.463a3.066 3.066 0 001.745.723zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <h2 class="text-lg font-bold text-slate-800">Examen de Certification (QCM)</h2>
+            </div>
+        </div>
+
+        <!-- Zone d'erreur globale -->
+        <div id="exam-errors" class="hidden mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm"></div>
+
+        <!-- Alpine.js wrapper pour les questions -->
+        <div x-data="examManager()" x-init="init()">
+
+            <!-- Infos examen -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label class="block text-xs font-semibold text-stone-500 mb-1">Titre de l'examen *</label>
+                    <input type="text" name="exam_titre" x-model="examTitle"
+                           placeholder="Ex: Examen final" required
+                           class="w-full px-3 py-2.5 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-stone-500 mb-1">Durée (minutes)</label>
+                    <input type="number" name="exam_duree" value="{{ examen.duree_minutes|default:'60' }}" min="1"
+                           class="w-full px-3 py-2.5 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-stone-500 mb-1">Note minimale (%)</label>
+                    <input type="number" name="exam_note_minimale" value="{{ examen.note_minimale|default:'50' }}" min="0" max="100"
+                           class="w-full px-3 py-2.5 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                </div>
+            </div>
+
+            <!-- Liste des questions -->
+            <div class="space-y-6">
+                <template x-for="(q, qi) in questions" :key="qi">
+                    <div class="border border-stone-200 rounded-xl p-5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-amber-500" x-text="'Question #' + (qi + 1)"></span>
+                            <button type="button" @click="removeQuestion(qi)"
+                                    class="text-xs text-red-500 hover:text-red-600">✕ Supprimer</button>
+                        </div>
+
+                        <!-- Énoncé -->
+                        <input type="text" :name="'question_texte'" x-model="q.texte" required
+                               placeholder="Énoncé de la question..."
+                               class="w-full px-3 py-2.5 rounded-lg border border-stone-200 text-sm font-semibold focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+
+                        <!-- Options -->
+                        <div class="space-y-2 ml-4">
+                            <template x-for="(opt, oi) in q.options" :key="oi">
+                                <div class="flex items-center gap-2">
+                                    <input type="text" :name="'option_texte_' + qi + '_' + oi" x-model="opt.texte"
+                                           :placeholder="'Option ' + (oi + 1)" required
+                                           class="flex-1 px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                                    <label class="flex items-center gap-1 text-xs text-stone-500 whitespace-nowrap">
+                                        <input type="checkbox" :name="'option_correcte_' + qi + '_' + oi"
+                                               :value="opt.texte" x-model="opt.correcte"
+                                               class="w-4 h-4 text-amber-600 rounded">
+                                        Correcte
+                                    </label>
+                                    <button type="button" @click="removeOption(qi, oi)"
+                                            x-show="q.options.length > 2"
+                                            class="text-xs text-red-400 hover:text-red-600 px-1">✕</button>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Bouton ajouter option -->
+                        <div class="ml-4">
+                            <button type="button" @click="addOption(qi)"
+                                    class="text-xs font-semibold text-amber-600 hover:text-amber-700 transition">
+                                + Ajouter une option
+                            </button>
+                        </div>
+
+                        <!-- Alerte validation -->
+                        <div x-show="q.options.length < 2" class="text-xs text-red-500 italic">
+                            ⚠️ Au moins 2 options de réponse sont requises.
+                        </div>
+                        <div x-show="q.options.length >= 2 && !q.options.some(o => o.correcte)" class="text-xs text-red-500 italic">
+                            ⚠️ Au moins une réponse correcte doit être cochée.
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Message si aucune question -->
+            <div x-show="questions.length === 0" class="text-center py-6">
+                <p class="text-sm text-stone-400">Ajoutez des questions QCM pour l'examen.</p>
+                <p class="text-xs text-stone-400 mt-1">Chaque question doit avoir au moins 2 options et 1 bonne réponse.</p>
+            </div>
+
+            <!-- Bouton ajouter question -->
+            <div class="mt-4 text-center">
+                <button type="button" @click="addQuestion()"
+                        class="px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-900 text-xs font-bold transition">
+                    + Ajouter une question
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════ BOUTONS ══════ -->
+    <div class="flex gap-3 pb-8">
+        <button type="submit"
+                class="px-8 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900
+                       font-bold text-sm shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98]">
+            {% if formation %}Enregistrer les modifications{% else %}Créer la formation{% endif %}
+        </button>
+        <a href="{% url 'courses:admin_formations' %}"
+           class="px-6 py-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 font-medium text-sm transition">
+            Annuler
+        </a>
+    </div>
+
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+// ═══════════════════════════════════
+//  ALPINE.JS — Gestionnaire d'Examen
+// ═══════════════════════════════════
+function examManager() {
+    return {
+        examTitle: '{{ examen.titre|default:""|escapejs }}',
+        questions: [],
+
+        init() {
+            // Charger les questions existantes depuis le serveur
+            const existing = [
+                {% for q in questions %}
+                {
+                    texte: {{ q.texte|escapejs }},
+                    options: [
+                        {% for opt in q.options.all %}
+                        { texte: {{ opt.texte|escapejs }}, correcte: {% if opt.est_correcte %}true{% else %}false{% endif %} },
+                        {% endfor %}
+                    ]
+                },
+                {% endfor %}
+            ];
+            if (existing.length > 0) {
+                this.questions = existing;
+            }
+        },
+
+        addQuestion() {
+            this.questions.push({
+                texte: '',
+                options: [
+                    { texte: '', correcte: false },
+                    { texte: '', correcte: false },
+                    { texte: '', correcte: false },
+                    { texte: '', correcte: false },
+                ]
+            });
+        },
+
+        removeQuestion(index) {
+            this.questions.splice(index, 1);
+        },
+
+        addOption(qi) {
+            this.questions[qi].options.push({ texte: '', correcte: false });
+        },
+
+        removeOption(qi, oi) {
+            this.questions[qi].options.splice(oi, 1);
+        },
+
+        validate() {
+            const errors = [];
+
+            if (!this.examTitle.trim()) {
+                errors.push('Le titre de l\'examen est requis.');
+            }
+
+            if (this.questions.length === 0) {
+                errors.push('Au moins une question est requise pour l\'examen.');
+            }
+
+            this.questions.forEach((q, qi) => {
+                if (!q.texte.trim()) {
+                    errors.push('Question #' + (qi + 1) + ' : l\'énoncé est requis.');
+                }
+                if (q.options.length < 2) {
+                    errors.push('Question #' + (qi + 1) + ' : au moins 2 options de réponse sont requises.');
+                }
+                if (q.options.length >= 2 && !q.options.some(o => o.correcte)) {
+                    errors.push('Question #' + (qi + 1) + ' : cochez au moins une réponse correcte.');
+                }
+                q.options.forEach((opt, oi) => {
+                    if (!opt.texte.trim()) {
+                        errors.push('Question #' + (qi + 1) + ', Option ' + (oi + 1) + ' : le texte est requis.');
+                    }
+                });
+            });
+
+            return errors;
+        }
+    };
+}
+
+// ═══════════════════════════════════
+//  VIDÉOS & RESSOURCES (existants)
+// ═══════════════════════════════════
+function addVideo() {
+    const tmpl = document.getElementById('video-template');
+    const container = document.getElementById('videos-container');
+    const clone = tmpl.content.cloneNode(true);
+    container.appendChild(clone);
+    document.getElementById('no-videos-msg')?.remove();
+    calcDureeTotale();
+}
+
+function addRessource() {
+    const tmpl = document.getElementById('ressource-template');
+    const container = document.getElementById('ressources-container');
+    const clone = tmpl.content.cloneNode(true);
+    container.appendChild(clone);
+    document.getElementById('no-ressources-msg')?.remove();
+}
+
+function removeBlock(btn) {
+    btn.closest('.video-block, .ressource-block').remove();
+    calcDureeTotale();
+}
+
+function calcDureeTotale() {
+    let total = 0;
+    document.querySelectorAll('.video-duree').forEach(input => {
+        total += parseInt(input.value) || 0;
+    });
+    const el = document.getElementById('duree-totale');
+    if (el) {
+        const h = Math.floor(total / 60);
+        const m = total % 60;
+        el.textContent = h > 0 ? `${h}h ${m}min` : `${total} min`;
+    }
+}
+
+// ═══════════════════════════════════
+//  VALIDATION SOUMISSION
+// ═══════════════════════════════════
+document.querySelector('form')?.addEventListener('submit', function(e) {
+    // Récupérer l'instance Alpine.js du bloc examen
+    const examDiv = document.querySelector('[x-data="examManager()"]');
+    if (examDiv && examDiv.__x) {
+        const mgr = examDiv.__x.$data;
+        const errors = mgr.validate();
+        if (errors.length > 0) {
+            e.preventDefault();
+            const errBox = document.getElementById('exam-errors');
+            if (errBox) {
+                errBox.innerHTML = errors.map(e => '• ' + e).join('<br>');
+                errBox.classList.remove('hidden');
+                errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return false;
+        }
+    }
+});
+
+// Init
+calcDureeTotale();
+</script>
+{% endblock %}

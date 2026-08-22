@@ -1,0 +1,105 @@
+{% extends "courses/base.html" %}
+{% block title %}Dashboard Formateur — Géomanager{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Dashboard Formateur</h1>
+    <p class="mt-1 text-stone-500 text-sm">Vue d'ensemble de votre académie minière.</p>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+    {% for key, val in stats.items %}
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-stone-100 text-center">
+        <div class="text-2xl font-extrabold text-slate-800">{{ val }}</div>
+        <div class="text-xs text-stone-400 mt-1">
+            {% if key == 'total_formations' %}Formations
+            {% elif key == 'total_apprenants' %}Apprenants
+            {% elif key == 'total_examens_passes' %}Examens passés
+            {% elif key == 'total_certifies' %}Certifiés
+            {% elif key == 'total_lecons' %}Leçons
+            {% elif key == 'taux_reussite' %}Taux de réussite (%) {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Actions rapides -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    <a href="{% url 'courses:admin_formation_add' %}" class="bg-white rounded-2xl p-5 shadow-sm border border-stone-100 hover:shadow-md transition flex items-center gap-4 group">
+        <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition">
+            <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+        </div>
+        <div>
+            <div class="text-sm font-bold text-slate-700">Nouvelle formation</div>
+            <div class="text-xs text-stone-400">Créer un cours</div>
+        </div>
+    </a>
+    <a href="{% url 'courses:admin_apprenants' %}" class="bg-white rounded-2xl p-5 shadow-sm border border-stone-100 hover:shadow-md transition flex items-center gap-4 group">
+        <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+        </div>
+        <div>
+            <div class="text-sm font-bold text-slate-700">Voir les apprenants</div>
+            <div class="text-xs text-stone-400">Suivi des inscrits</div>
+        </div>
+    </a>
+    <a href="{% url 'courses:admin_certifications' %}" class="bg-white rounded-2xl p-5 shadow-sm border border-stone-100 hover:shadow-md transition flex items-center gap-4 group">
+        <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition">
+            <svg class="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0c.46.308.97.463 1.503.463 1.571 0 2.97.915 3.686 2.278a1 1 0 01-1.837.717C12.927 5.66 11.627 5 10.5 5c-1.127 0-2.427.66-2.852 1.658a1 1 0 01-1.837-.717A5.99 5.99 0 018.25 5c.533 0 1.043.155 1.503.463a3.066 3.066 0 001.745.723zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+            </svg>
+        </div>
+        <div>
+            <div class="text-sm font-bold text-slate-700">Certifications</div>
+            <div class="text-xs text-stone-400">Résultats des examens</div>
+        </div>
+    </a>
+    <a href="{% url 'courses:admin_transactions' %}" class="bg-white rounded-2xl p-5 shadow-sm border border-stone-100 hover:shadow-md transition flex items-center gap-4 group">
+        <div class="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center group-hover:bg-violet-100 transition">
+            <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+        </div>
+        <div>
+            <div class="text-sm font-bold text-slate-700">Transactions</div>
+            <div class="text-xs text-stone-400">Paiements MaishaPay</div>
+        </div>
+    </a>
+</div>
+
+<!-- Formations récentes -->
+<div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8">
+    <div class="flex items-center justify-between mb-5">
+        <h2 class="text-lg font-bold text-slate-800">Formations</h2>
+        <a href="{% url 'courses:admin_formations' %}" class="text-sm text-amber-600 hover:text-amber-700 font-semibold">Voir tout →</a>
+    </div>
+    {% if formations %}
+        <div class="space-y-3">
+            {% for f in formations %}
+            <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-stone-50 hover:bg-stone-100 transition">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="text-sm font-semibold text-slate-700">{{ f.titre }}</span>
+                        <span class="text-xs text-stone-400 ml-2">{{ f.nb_modules }} modules · {{ f.nb_lecons }} leçons</span>
+                    </div>
+                </div>
+                <a href="{% url 'courses:admin_formation_edit' f.id %}" class="text-xs text-amber-600 hover:text-amber-700 font-semibold">Modifier</a>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-sm text-stone-400 text-center py-4">Aucune formation créée.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,283 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Géomanager{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            teal:    '#1a3a4a',
+                            'teal-light': '#2a5e78',
+                            copper:  '#c88e6e',
+                            'copper-dark': '#9e5e3e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-in-out; }
+        .mobile-menu.open { max-height: 600px; }
+    </style>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="h-full bg-stone-50 text-slate-800">
+
+    <!-- Navbar -->
+    <nav class="bg-brand-teal shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+
+                <!-- Logo -->
+                <a href="{% url 'courses:home' %}" class="flex items-center gap-3 flex-shrink-0">
+                    <img src="{% static 'geomanager_logo_small.svg' %}" alt="Géomanager" class="h-10 w-auto">
+                    <span class="text-xl font-bold text-white hidden sm:block">
+                        Geo<span class="text-brand-copper">Manager</span>
+                    </span>
+                </a>
+
+                <!-- ══════ DESKTOP ══════ -->
+                <div class="hidden md:flex items-center gap-1">
+
+                    {% if user.is_authenticated %}
+                        {% if user.is_staff %}
+                            {# ─── MENU FORMATEUR ─── #}
+                            <a href="{% url 'courses:admin_dashboard' %}"
+                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                                Dashboard
+                            </a>
+                            <a href="{% url 'courses:admin_formations' %}"
+                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                                Formations
+                            </a>
+                            <a href="{% url 'courses:admin_apprenants' %}"
+                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                                Apprenants
+                            </a>
+                            <a href="{% url 'courses:admin_certifications' %}"
+                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                                Certifications
+                            </a>
+                        {% else %}
+                            {# ─── MENU APPRENANT ─── #}
+                            <a href="{% url 'courses:dashboard' %}"
+                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                                Dashboard
+                            </a>
+                            <a href="{% url 'courses:liste_formations' %}"
+                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                                Formations
+                            </a>
+                            <a href="{% url 'courses:mes_certifications' %}"
+                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                                Certifications
+                            </a>
+                        {% endif %}
+
+                        {# ─── COMMUN : Certificat + À propos + User ─── #}
+                        <a href="{% url 'courses:verifier_certificat' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            🔍 Certificat
+                        </a>
+                        <a href="{% url 'courses:a_propos' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            À propos
+                        </a>
+
+                        <div class="ml-2 pl-3 border-l border-white/10 flex items-center gap-3">
+                            <a href="{% url 'courses:profile' %}" class="flex items-center gap-2 hover:opacity-80 transition">
+                                <div class="w-8 h-8 rounded-full bg-brand-copper/20 text-brand-copper flex items-center justify-center text-xs font-bold">
+                                    {{ user.username|first|upper }}
+                                </div>
+                                <span class="text-sm text-stone-300">{{ user.username }}</span>
+                            </a>
+                            <a href="{% url 'courses:logout' %}"
+                               class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition">
+                                Déconnexion
+                            </a>
+                        </div>
+
+                    {% else %}
+                        {# ─── NON CONNECTÉ ─── #}
+                        <a href="{% url 'courses:liste_formations' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            Formations
+                        </a>
+                        <a href="{% url 'courses:verifier_certificat' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            🔍 Vérifier certificat
+                        </a>
+                        <a href="{% url 'courses:a_propos' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            À propos
+                        </a>
+                        <div class="ml-2 pl-3 border-l border-white/10 flex items-center gap-2">
+                            <a href="{% url 'courses:login' %}"
+                               class="px-3 py-1.5 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 text-sm font-medium transition">
+                                Connexion
+                            </a>
+                            <a href="{% url 'courses:register' %}"
+                               class="px-4 py-1.5 rounded-lg bg-brand-copper hover:bg-brand-copper-dark text-white text-sm font-bold transition">
+                                S'inscrire
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Burger button (mobile) -->
+                <button id="menu-btn" class="md:hidden p-2 rounded-lg hover:bg-white/10 transition" aria-label="Menu">
+                    <svg class="w-6 h-6 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path id="icon-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6h16M4 12h16M4 18h16"/>
+                        <path id="icon-close" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12" class="hidden"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- ══════ MOBILE MENU ══════ -->
+        <div id="mobile-menu" class="mobile-menu md:hidden border-t border-white/10 bg-brand-teal">
+            <div class="px-4 py-3 space-y-1">
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        {# ─── FORMATEUR MOBILE ─── #}
+                        <a href="{% url 'courses:admin_dashboard' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                            📊 Dashboard
+                        </a>
+                        <a href="{% url 'courses:admin_formations' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                            📚 Formations
+                        </a>
+                        <a href="{% url 'courses:admin_apprenants' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                            👥 Apprenants
+                        </a>
+                        <a href="{% url 'courses:admin_certifications' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                            🏆 Certifications
+                        </a>
+                    {% else %}
+                        {# ─── APPRENANT MOBILE ─── #}
+                        <a href="{% url 'courses:dashboard' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                            📊 Dashboard
+                        </a>
+                        <a href="{% url 'courses:liste_formations' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                            📚 Formations
+                        </a>
+                        <a href="{% url 'courses:mes_certifications' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                            🏆 Certifications
+                        </a>
+                    {% endif %}
+
+                    <a href="{% url 'courses:verifier_certificat' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                        🔍 Vérifier un certificat
+                    </a>
+                    <a href="{% url 'courses:a_propos' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                        ℹ️ À propos
+                    </a>
+
+                    <div class="border-t border-white/10 pt-2 mt-2">
+                        <a href="{% url 'courses:profile' %}" class="flex items-center gap-2 px-3 py-1 hover:bg-white/10 rounded-lg transition">
+                            <div class="w-7 h-7 rounded-full bg-brand-copper/20 text-brand-copper flex items-center justify-center text-xs font-bold">
+                                {{ user.username|first|upper }}
+                            </div>
+                            <span class="text-sm text-stone-300">Profil</span>
+                        </a>
+                        <a href="{% url 'courses:logout' %}" class="block px-3 py-2 rounded-lg hover:bg-red-500/10 text-red-400 font-medium text-sm mt-1">
+                            Déconnexion
+                        </a>
+                    </div>
+                {% else %}
+                    <a href="{% url 'courses:liste_formations' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                        📚 Formations
+                    </a>
+                    <a href="{% url 'courses:verifier_certificat' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                        🔍 Vérifier un certificat
+                    </a>
+                    <a href="{% url 'courses:a_propos' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                        ℹ️ À propos
+                    </a>
+                    <div class="border-t border-white/10 pt-2 mt-2 space-y-2">
+                        <a href="{% url 'courses:login' %}" class="block px-3 py-2 rounded-lg text-center border border-white/20 text-stone-300 font-medium text-sm">
+                            Connexion
+                        </a>
+                        <a href="{% url 'courses:register' %}" class="block px-3 py-2 rounded-lg text-center bg-brand-copper text-white font-bold text-sm">
+                            S'inscrire
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages flash Django -->
+    {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 space-y-2">
+            {% for message in messages %}
+                <div class="flex items-center gap-3 px-4 py-3 rounded-xl shadow-sm
+                    {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200
+                    {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+                    {% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border border-amber-200
+                    {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                    {% if message.tags == 'success' %}
+                        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    {% elif message.tags == 'error' %}
+                        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                    {% endif %}
+                    <p class="flex-1 text-sm font-medium">{{ message }}</p>
+                    <button onclick="this.parentElement.remove()" class="text-current opacity-50 hover:opacity-100">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Contenu principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-brand-teal border-t border-brand-teal-light/30 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <img src="{% static 'geomanager_logo_small.svg' %}" alt="Géomanager" class="h-8 w-auto brightness-200">
+                </div>
+                <div class="flex items-center gap-6 text-sm text-stone-300">
+                    <a href="{% url 'courses:home' %}" class="hover:text-brand-copper transition">Accueil</a>
+                    <a href="{% url 'courses:liste_formations' %}" class="hover:text-brand-copper transition">Formations</a>
+                    <a href="{% url 'courses:verifier_certificat' %}" class="hover:text-brand-copper transition">Vérifier certificat</a>
+                    <a href="{% url 'courses:a_propos' %}" class="hover:text-brand-copper transition">À propos</a>
+                    <a href="{% url 'courses:terms' %}" class="hover:text-brand-copper transition">CGU</a>
+                </div>
+                <p class="text-sm text-stone-400">&copy; 2026 Géomanager</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('menu-btn')?.addEventListener('click', () => {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('open');
+            document.getElementById('icon-open').classList.toggle('hidden');
+            document.getElementById('icon-close').classList.toggle('hidden');
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

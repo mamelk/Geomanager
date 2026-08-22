@@ -1,0 +1,91 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Formations — Géomanager{% endblock %}
+
+{% block content %}
+<!-- En-tête -->
+<div class="mb-8">
+    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Nos Formations</h1>
+    <p class="mt-2 text-gray-500">Parcourez nos formations et obtenez votre certification.</p>
+</div>
+
+<!-- Grille responsive des formations -->
+{% if formations %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for formation in formations %}
+            <a href="{% url 'courses:formation_detail' formation.id %}" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden
+                        hover:shadow-md transition-shadow duration-200 flex flex-col">
+
+                <!-- Image -->
+                {% if formation.image %}
+                    <img src="{{ formation.image.url }}" alt="{{ formation.titre }}"
+                         class="w-full h-48 object-cover">
+                {% else %}
+                    <div class="w-full h-48 bg-gradient-to-br from-indigo-400 to-purple-500
+                                flex items-center justify-center">
+                        <svg class="w-16 h-16 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                    </div>
+                {% endif %}
+
+                <!-- Corps -->
+                <div class="p-5 flex-1 flex flex-col">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-1">{{ formation.titre }}</h2>
+
+                    {% if formation.description %}
+                        <p class="text-gray-500 text-sm mb-3 line-clamp-2">{{ formation.description }}</p>
+                    {% endif %}
+
+                    <!-- Badge certification -->
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                     bg-indigo-100 text-indigo-800">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            Seuil : {{ formation.seuil_certification }}%
+                        </span>
+                    </div>
+
+                    <!-- Modules count -->
+                    <p class="text-xs text-gray-400 mb-4">
+                        {{ formation.nb_videos }} vidéo{{ formation.nb_videos|pluralize }}
+                        · {{ formation.duree_totale_formatee }}
+                        {% if formation.id in user_inscriptions %}
+                            <span class="text-emerald-500 font-semibold">✓ Inscrit</span>
+                        {% endif %}
+                    </p>
+
+                    <!-- Modules list -->
+                    {% if formation.modules.all %}
+                        <div class="mt-auto space-y-1">
+                            {% for module in formation.modules.all|slice:":3" %}
+                                <div class="text-xs text-gray-500 flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></span>
+                                    <span class="truncate">{{ module.titre }}</span>
+                                    <span class="text-gray-300 ml-auto">{{ module.lecons.count }} leçon{{ module.lecons.count|pluralize }}</span>
+                                </div>
+                            {% endfor %}
+                            {% if formation.modules.count > 3 %}
+                                <p class="text-xs text-gray-400 pl-3">+{{ formation.modules.count|add:"-3" }} autre{{ formation.modules.count|add:"-3"|pluralize }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <!-- Empty state -->
+    <div class="text-center py-16">
+        <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-500">Aucune formation disponible</h3>
+        <p class="mt-1 text-sm text-gray-400">Revenez bientôt pour découvrir nos formations.</p>
+    </div>
+{% endif %}
+{% endblock %}

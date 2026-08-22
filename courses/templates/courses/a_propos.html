@@ -1,0 +1,128 @@
+{% extends "courses/base.html" %}
+{% block title %}À propos — Géomanager{% endblock %}
+
+{% block content %}
+<nav class="mb-6 text-sm text-stone-400 flex items-center gap-1.5">
+    <a href="{% url 'courses:home' %}" class="hover:text-amber-600 transition">Accueil</a>
+    <span>›</span>
+    <span class="text-slate-700 font-medium">À propos</span>
+</nav>
+
+<div class="max-w-4xl mx-auto space-y-8">
+
+    <!-- Hero -->
+    <div class="bg-gradient-to-r from-slate-800 to-slate-700 rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-amber-400/10 rounded-full blur-3xl"></div>
+        <div class="relative z-10">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white">
+                Géomanager
+            </h1>
+            <p class="mt-3 text-stone-300 text-lg max-w-xl mx-auto">
+                L'académie de formation professionnelle dédiée à l'excellence dans l'industrie minière.
+            </p>
+        </div>
+    </div>
+
+    <!-- Mission -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8">
+        <h2 class="text-xl font-bold text-slate-800 mb-4">Notre mission</h2>
+        <p class="text-stone-600 leading-relaxed">
+            Géomanager a été conçu pour répondre aux besoins croissants de formation dans le secteur minier
+            en République Démocratique du Congo et en Afrique. Notre plateforme offre des parcours de formation
+            certifiants, conçus par des experts du domaine, couvrant la géologie, la sécurité minière,
+            l'exploitation et le traitement du minerai.
+        </p>
+    </div>
+
+    <!-- Expertise -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8">
+        <h2 class="text-xl font-bold text-slate-800 mb-5">Domaines d'expertise</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex items-start gap-3 p-4 rounded-xl bg-stone-50">
+                <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-slate-700">Géologie &amp; Sondage</h3>
+                    <p class="text-xs text-stone-500 mt-0.5">Analyse des gisements, prospection, cartographie géologique</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 rounded-xl bg-stone-50">
+                <div class="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-slate-700">Sécurité Minière &amp; HSE</h3>
+                    <p class="text-xs text-stone-500 mt-0.5">Protocoles de sécurité, hygiène, environnement</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 rounded-xl bg-stone-50">
+                <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-slate-700">Exploitation &amp; Cartographie</h3>
+                    <p class="text-xs text-stone-500 mt-0.5">Méthodes d'exploitation, SIG, topographie</p>
+                </div>
+            </div>
+            <div class="flex items-start gap-3 p-4 rounded-xl bg-stone-50">
+                <div class="w-10 h-10 rounded-lg bg-stone-200 text-stone-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-slate-700">Traitement du Minerai</h3>
+                    <p class="text-xs text-stone-500 mt-0.5">Broyage, flotation, hydrométallurgie</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Normes de certification -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8">
+        <h2 class="text-xl font-bold text-slate-800 mb-4">Normes de certification</h2>
+        <div class="space-y-4 text-stone-600 text-sm leading-relaxed">
+            <p>
+                Les certifications délivrées par Géomanager suivent les standards de formation professionnelle
+                reconnus dans l'industrie minière. Chaque formation est structurée en modules progressifs,
+                évalués par des examens à choix multiples (QCM).
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                <div class="text-center p-4 rounded-xl bg-amber-50 border border-amber-100">
+                    <div class="text-2xl font-extrabold text-amber-600">70%</div>
+                    <div class="text-xs text-stone-500 mt-1">Seuil minimum de réussite</div>
+                </div>
+                <div class="text-center p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                    <div class="text-2xl font-extrabold text-emerald-600">✓</div>
+                    <div class="text-xs text-stone-500 mt-1">Certificat délivré</div>
+                </div>
+                <div class="text-center p-4 rounded-xl bg-blue-50 border border-blue-100">
+                    <div class="text-2xl font-extrabold text-blue-600">∞</div>
+                    <div class="text-xs text-stone-500 mt-1">Tentatives illimitées</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="bg-gradient-to-r from-amber-500 to-amber-600 rounded-2xl p-8 text-center">
+        <h2 class="text-xl font-bold text-slate-900">Prêt à commencer votre formation ?</h2>
+        <p class="mt-2 text-slate-800 text-sm">Rejoignez les professionnels miniers qui font confiance à Géomanager.</p>
+        <div class="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a href="{% url 'courses:register' %}" class="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition">
+                Créer mon compte
+            </a>
+            <a href="{% url 'courses:liste_formations' %}" class="px-6 py-3 rounded-xl bg-white/20 hover:bg-white/30 text-slate-900 font-semibold text-sm transition">
+                Explorer les formations
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

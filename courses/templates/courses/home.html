@@ -1,0 +1,281 @@
+{% extends "courses/base.html" %}
+{% load static %}
+
+{% block title %}Géomanager — Plateforme de Formation Minière & Exploration{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-mining {
+        background: linear-gradient(135deg, #1a3a4a 0%, #2a5e78 40%, #3a7a94 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-mining::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c88e6e' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+        opacity: 0.5;
+    }
+    .card-formation:hover { transform: translateY(-4px); }
+    .card-domain:hover { transform: translateY(-4px); }
+    .gradient-text { background: linear-gradient(135deg, #c88e6e, #9e5e3e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero-mining -mx-4 sm:-mx-6 lg:-mx-8 -mt-6 px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative">
+    <div class="relative z-10 max-w-5xl mx-auto">
+        <div class="flex flex-col lg:flex-row items-center gap-12">
+
+            <!-- Texte -->
+            <div class="flex-1 text-center lg:text-left">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-copper/10 border border-brand-copper/20 mb-6">
+                    <span class="w-2 h-2 rounded-full bg-brand-copper animate-pulse"></span>
+                    <span class="text-brand-copper text-sm font-medium">Plateforme certifiée par ESTECH</span>
+                </div>
+
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
+                    Maîtrisez l'art de
+                    <span class="text-brand-copper">l'ingénierie minière</span>
+                </h1>
+
+                <p class="mt-6 text-lg text-stone-300 max-w-xl leading-relaxed">
+                    Formations certifiantes en géologie, sécurité, exploitation et traitement du minerai.
+                    Développées par des experts du secteur minier africain.
+                </p>
+
+                <div class="mt-8 flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4">
+                    <a href="{% url 'courses:liste_formations' %}"
+                       class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
+                              bg-brand-copper hover:bg-brand-copper-dark text-white font-bold text-lg shadow-lg
+                              shadow-brand-copper/25 transition-all duration-200">
+                        Explorer les formations →
+                    </a>
+                    <a href="{% url 'courses:register' %}"
+                       class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
+                              bg-white/10 hover:bg-white/20 text-white font-semibold border border-white/20 transition-all">
+                        Créer un compte
+                    </a>
+                </div>
+            </div>
+
+            <!-- Illustration / Carte info -->
+            <div class="flex-shrink-0 w-full lg:w-auto">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 max-w-sm mx-auto lg:mx-0">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img src="{% static 'geomanager_logo_small.svg' %}" alt="GM" class="h-8">
+                        <div class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Aperçu plateforme</div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-stone-300">Formations disponibles</span>
+                            <span class="font-bold text-white">{{ stats.0.valeur }}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-stone-300">Heures de contenu</span>
+                            <span class="font-bold text-brand-copper">{{ total_heures }}h</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-stone-300">Apprenants inscrits</span>
+                            <span class="font-bold text-white">{{ stats.2.valeur }}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-stone-300">Certifications</span>
+                            <span class="font-bold text-emerald-400">{{ nb_certifies }}</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-white/10 text-center">
+                        <a href="{% url 'courses:verifier_certificat' %}" class="text-xs text-brand-copper hover:text-white transition font-medium">
+                            🔍 Vérifier un certificat →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vague décorative -->
+    <div class="absolute bottom-0 left-0 right-0">
+        <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full">
+            <path d="M0 60L60 52C120 44 240 28 360 22C480 16 600 20 720 26C840 32 960 40 1080 38C1200 36 1320 24 1380 18L1440 12V60H0Z"
+                  fill="#F9FAFB"/>
+        </svg>
+    </div>
+</section>
+
+<!-- ═══════════ STATISTIQUES ═══════════ -->
+<section class="py-12">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {% for stat in stats %}
+        <div class="bg-white rounded-2xl p-5 sm:p-6 text-center shadow-sm border border-stone-100 hover:shadow-md transition-shadow">
+            <div class="w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-3
+                        {% if stat.color == 'teal' %}bg-brand-teal/10 text-brand-teal
+                        {% elif stat.color == 'copper' %}bg-brand-copper/10 text-brand-copper
+                        {% elif stat.color == 'slate' %}bg-slate-100 text-slate-600
+                        {% else %}bg-emerald-100 text-emerald-600{% endif %}">
+                {{ stat.icon_html|safe }}
+            </div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-slate-800">{{ stat.valeur }}</div>
+            <div class="text-sm text-stone-500 mt-1">{{ stat.label }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- ═══════════ FORMATIONS — DÉCOUVRIR ═══════════ -->
+{% if formations_recentes %}
+<section class="py-12">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Nos formations certifiantes</h2>
+            <p class="mt-1 text-stone-500">Programmes conçus pour les professionnels du secteur minier</p>
+        </div>
+        <a href="{% url 'courses:liste_formations' %}" class="hidden sm:inline-flex items-center gap-1 text-brand-copper hover:text-brand-copper-dark font-semibold text-sm transition">
+            Voir toutes →
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for f in formations_recentes %}
+        <a href="{% url 'courses:formation_detail' f.id %}"
+           class="card-formation block bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden
+                  hover:shadow-lg transition-all duration-300 group">
+            <!-- Header coloré par domaine -->
+            <div class="px-5 py-4
+                {% if f.domaine == 'geologie' %}bg-gradient-to-r from-brand-teal to-brand-teal-light
+                {% elif f.domaine == 'securite' %}bg-gradient-to-r from-red-500 to-red-600
+                {% elif f.domaine == 'exploitation' %}bg-gradient-to-r from-emerald-500 to-emerald-600
+                {% elif f.domaine == 'traitement' %}bg-gradient-to-r from-brand-copper to-brand-copper-dark
+                {% else %}bg-gradient-to-r from-slate-600 to-slate-700{% endif %}">
+                <div class="flex items-center justify-between">
+                    <span class="text-white/80 text-xs font-semibold uppercase tracking-wide">
+                        {{ f.get_domaine_display }}
+                    </span>
+                    <span class="text-white text-xs font-bold bg-white/20 px-2 py-0.5 rounded-full">
+                        {{ f.nb_vid }} vidéos
+                    </span>
+                </div>
+            </div>
+            <!-- Corps -->
+            <div class="p-5">
+                <h3 class="font-bold text-slate-800 group-hover:text-brand-teal transition">{{ f.titre }}</h3>
+                <p class="text-sm text-stone-400 mt-2 line-clamp-2">{{ f.description|truncatewords:20 }}</p>
+                <div class="flex items-center gap-3 mt-4 text-xs text-stone-400">
+                    {% if f.duree_totale_secondes > 0 %}
+                    <span class="flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {{ f.duree_totale_formatee }}
+                    </span>
+                    {% endif %}
+                    <span>•</span>
+                    <span>Seuil : {{ f.seuil_certification }}%</span>
+                </div>
+                <div class="mt-4">
+                    <span class="inline-flex items-center gap-1 text-brand-copper font-semibold text-sm group-hover:gap-2 transition-all">
+                        Découvrir →
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <div class="mt-6 text-center sm:hidden">
+        <a href="{% url 'courses:liste_formations' %}" class="text-brand-copper hover:text-brand-copper-dark font-semibold text-sm">
+            Voir toutes les formations →
+        </a>
+    </div>
+</section>
+{% endif %}
+
+<!-- ═══════════ DOMAINES D'EXPERTISE ═══════════ -->
+{% if domaines %}
+<section class="py-12">
+    <div class="text-center mb-10">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Domaines d'expertise</h2>
+        <p class="mt-2 text-stone-500">Spécialisations couvrant l'ensemble de la chaîne minière</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for d in domaines %}
+        <div class="card-domain bg-white rounded-2xl p-6 shadow-sm border border-stone-100 hover:shadow-lg transition-all duration-300">
+            <div class="flex items-center gap-4 mb-3">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center
+                    {% if d.code == 'geologie' %}bg-brand-teal/10 text-brand-teal
+                    {% elif d.code == 'securite' %}bg-red-50 text-red-600
+                    {% elif d.code == 'exploitation' %}bg-emerald-50 text-emerald-600
+                    {% elif d.code == 'traitement' %}bg-brand-copper/10 text-brand-copper
+                    {% elif d.code == 'topographie' %}bg-blue-50 text-blue-600
+                    {% else %}bg-stone-100 text-stone-600{% endif %}">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800">{{ d.label }}</h3>
+                    <p class="text-sm text-stone-400">{{ d.count }} formation{{ d.count|pluralize }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- ═══════════ VÉRIFICATION CERTIFICAT ═══════════ -->
+<section class="py-12">
+    <div class="bg-brand-teal rounded-3xl p-8 sm:p-12 text-center">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-2">Vérifier l'authenticité d'un certificat</h2>
+        <p class="text-stone-300 mb-6 max-w-lg mx-auto">
+            Saisissez le numéro unique (format GEO-AAAA-XXXX) inscrit sur le document pour confirmer sa validité.
+        </p>
+        <form action="{% url 'courses:verifier_certificat' %}" method="GET" class="max-w-md mx-auto flex gap-2">
+            <input type="text" name="numero" placeholder="GEO-2026-XXXX" required
+                   class="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white
+                          focus:outline-none focus:border-brand-copper font-mono tracking-wide
+                          placeholder:text-stone-400">
+            <button type="submit"
+                    class="bg-brand-copper hover:bg-brand-copper-dark text-white font-bold px-6 py-3 rounded-xl transition-all">
+                Vérifier
+            </button>
+        </form>
+    </div>
+</section>
+
+<!-- ═══════════ CTA ═══════════ -->
+<section class="py-12">
+    <div class="relative bg-gradient-to-r from-brand-teal via-brand-teal-light to-brand-teal rounded-3xl
+                p-8 sm:p-12 overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-brand-copper/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-brand-copper/10 rounded-full blur-3xl"></div>
+
+        <div class="relative z-10 text-center max-w-2xl mx-auto">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+                Rejoignez les professionnels miniers
+            </h2>
+            <p class="mt-4 text-stone-300 text-lg">
+                Obtenez vos certifications en géologie, sécurité et exploitation minière.
+                Développé par <span class="text-brand-copper font-semibold">ESTECH</span>.
+            </p>
+            <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="{% url 'courses:register' %}"
+                   class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
+                          bg-brand-copper hover:bg-brand-copper-dark text-white font-bold text-lg shadow-lg
+                          shadow-brand-copper/25 transition-all">
+                    Commencer maintenant
+                </a>
+                <a href="{% url 'courses:liste_formations' %}"
+                   class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
+                          bg-white/10 hover:bg-white/20 text-white font-semibold border border-white/20 transition-all">
+                    Explorer les formations
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

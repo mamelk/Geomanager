@@ -1,0 +1,9 @@
+django>=6.0,<7.0
+python-dotenv>=1.0
+requests>=2.31.0
+reportlab>=4.0
+Pillow>=10.0
+whitenoise>=6.0
+gunicorn>=21.0
+psycopg2-binary>=2.9
+dj-database-url>=2.0

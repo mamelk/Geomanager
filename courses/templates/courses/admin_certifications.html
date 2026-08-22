@@ -1,0 +1,135 @@
+{% extends "courses/base.html" %}
+{% block title %}Certifications — Géomanager{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Certifications</h1>
+    <p class="mt-1 text-stone-500 text-sm">Suivi des examens et certifications des apprenants.</p>
+</div>
+
+<!-- Filtres -->
+<div class="flex flex-wrap gap-2 mb-6">
+    <a href="{% url 'courses:admin_certifications' %}"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition
+              {% if filtre == 'all' %}bg-amber-500 text-slate-900 shadow-sm{% else %}bg-white text-stone-500 border border-stone-200 hover:bg-stone-50{% endif %}">
+        Toutes ({{ tentatives_list|length }})
+    </a>
+    <a href="?filtre=certifie"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition
+              {% if filtre == 'certifie' %}bg-emerald-500 text-white shadow-sm{% else %}bg-white text-stone-500 border border-stone-200 hover:bg-stone-50{% endif %}">
+        ✓ Certifiées
+    </a>
+    <a href="?filtre=echec"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition
+              {% if filtre == 'echec' %}bg-red-500 text-white shadow-sm{% else %}bg-white text-stone-500 border border-stone-200 hover:bg-stone-50{% endif %}">
+        ✗ Échecs
+    </a>
+</div>
+
+{% if tentatives_list %}
+    <!-- Desktop table -->
+    <div class="hidden md:block bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-stone-100 bg-stone-50">
+                        <th class="text-left px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Apprenant</th>
+                        <th class="text-left px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Formation</th>
+                        <th class="text-center px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Score</th>
+                        <th class="text-center px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Seuil</th>
+                        <th class="text-center px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Date</th>
+                        <th class="text-center px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Statut</th>
+                        <th class="text-center px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Attestation</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-50">
+                    {% for item in tentatives_list %}
+                    <tr class="hover:bg-stone-50/50 transition">
+                        <td class="px-5 py-3.5">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
+                                    {{ item.tentative.etudiant.username|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-700">{{ item.tentative.etudiant.get_full_name|default:item.tentative.etudiant.username }}</div>
+                                    <div class="text-xs text-stone-400">@{{ item.tentative.etudiant.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-5 py-3.5 text-sm text-stone-600">{{ item.tentative.examen.formation.titre }}</td>
+                        <td class="px-5 py-3.5 text-center">
+                            <span class="text-lg font-bold {% if item.est_certifie %}text-emerald-600{% else %}text-stone-400{% endif %}">
+                                {{ item.tentative.note }}%
+                            </span>
+                        </td>
+                        <td class="px-5 py-3.5 text-center text-sm text-stone-500">{{ item.seuil }}%</td>
+                        <td class="px-5 py-3.5 text-center text-xs text-stone-400">{{ item.tentative.date_soumission|date:"d/m/Y H:i"|default:"—" }}</td>
+                        <td class="px-5 py-3.5 text-center">
+                            {% if item.est_certifie %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                                    ✓ Certifié
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                    ✗ Non validé
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-3.5 text-center">
+                            {% if item.est_certifie %}
+                                <button onclick="alert('Attestation pour {{ item.tentative.etudiant.username }} — {{ item.tentative.examen.titre }} — Score: {{ item.tentative.note }}%')"
+                                   class="text-xs text-amber-600 hover:text-amber-700 font-semibold">
+                                    Voir attestation
+                                </button>
+                            {% else %}
+                                <span class="text-xs text-stone-400">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Mobile cards -->
+    <div class="md:hidden space-y-3">
+        {% for item in tentatives_list %}
+        <div class="bg-white rounded-xl shadow-sm border border-stone-100 p-4">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
+                        {{ item.tentative.etudiant.username|first|upper }}
+                    </div>
+                    <span class="text-sm font-semibold text-slate-700">{{ item.tentative.etudiant.get_full_name|default:item.tentative.etudiant.username }}</span>
+                </div>
+                {% if item.est_certifie %}
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">✓ Certifié</span>
+                {% else %}
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">✗ Non validé</span>
+                {% endif %}
+            </div>
+            <div class="flex items-center justify-between text-xs text-stone-400">
+                <span>{{ item.tentative.examen.formation.titre }}</span>
+                <span>{{ item.tentative.date_soumission|date:"d/m/Y" }}</span>
+            </div>
+            <div class="flex items-center justify-between mt-2">
+                <span class="font-bold {% if item.est_certifie %}text-emerald-600{% else %}text-stone-400{% endif %}">
+                    Score : {{ item.tentative.note }}%
+                </span>
+                <span class="text-xs text-stone-400">Seuil : {{ item.seuil }}%</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-16 bg-white rounded-2xl border border-stone-100">
+        <svg class="w-16 h-16 mx-auto text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-500">Aucune tentative d'examen</h3>
+        <p class="mt-1 text-sm text-gray-400">Les résultats apparaîtront ici lorsque les apprenants passeront des examens.</p>
+    </div>
+{% endif %}
+{% endblock %}

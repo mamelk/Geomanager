@@ -1,0 +1,112 @@
+{% extends "courses/base.html" %}
+{% block title %}Vérifier un certificat — Géomanager{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+    <!-- En-tête -->
+    <div class="text-center mb-8">
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-teal to-brand-teal-light flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-teal/20">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Vérification de Certificat</h1>
+        <p class="mt-2 text-stone-500 text-sm">Contrôlez l'authenticité d'un certificat délivré par Géomanager.</p>
+    </div>
+
+    <!-- Formulaire de recherche -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8 mb-6">
+        <form action="{% url 'courses:verifier_certificat' %}" method="GET" class="flex flex-col sm:flex-row gap-3">
+            <input type="text" name="numero"
+                   value="{{ numero }}"
+                   placeholder="Ex: GEO-2026-8F9A2"
+                   class="flex-1 px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-slate-800
+                          focus:outline-none focus:ring-2 focus:ring-brand-copper focus:border-brand-copper
+                          font-mono text-lg tracking-wide placeholder:text-stone-300"
+                   required>
+            <button type="submit"
+                    class="bg-brand-copper hover:bg-brand-copper-dark text-white font-bold px-8 py-3 rounded-xl
+                           transition-all shadow-lg shadow-brand-copper/20 whitespace-nowrap">
+                🔍 Vérifier
+            </button>
+        </form>
+    </div>
+
+    {% if resultat %}
+    <!-- ✅ Certificat valide -->
+    <div class="bg-white rounded-2xl shadow-sm border border-emerald-200 overflow-hidden">
+        <!-- Badge vert -->
+        <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-white">Certificat Authentique</h2>
+                <p class="text-emerald-100 text-sm">Ce certificat est valide et a été délivré par Géomanager.</p>
+            </div>
+        </div>
+
+        <!-- Détails -->
+        <div class="p-6 sm:p-8 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-stone-50 rounded-xl p-4">
+                    <p class="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-1">N° Certificat</p>
+                    <p class="font-mono font-bold text-lg text-brand-teal">{{ resultat.numero }}</p>
+                </div>
+                <div class="bg-stone-50 rounded-xl p-4">
+                    <p class="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-1">Apprenant</p>
+                    <p class="font-bold text-lg text-slate-800">{{ resultat.apprenant }}</p>
+                </div>
+                <div class="bg-stone-50 rounded-xl p-4">
+                    <p class="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-1">Formation</p>
+                    <p class="font-bold text-lg text-slate-800">{{ resultat.formation }}</p>
+                </div>
+                <div class="bg-stone-50 rounded-xl p-4">
+                    <p class="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-1">Score obtenu</p>
+                    <p class="font-bold text-lg text-emerald-600">{{ resultat.score }}</p>
+                </div>
+                <div class="bg-stone-50 rounded-xl p-4">
+                    <p class="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-1">Date d'obtention</p>
+                    <p class="font-bold text-lg text-slate-800">{{ resultat.date }}</p>
+                </div>
+                <div class="bg-stone-50 rounded-xl p-4">
+                    <p class="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-1">Formateur</p>
+                    <p class="font-bold text-lg text-slate-800">{{ resultat.formateur }}</p>
+                </div>
+            </div>
+
+            <!-- Signature officielle -->
+            <div class="mt-6 pt-4 border-t border-stone-200 text-center">
+                <p class="text-xs text-stone-400">Délivré par</p>
+                <p class="font-bold text-brand-teal">{{ resultat.formateur }}</p>
+                <p class="text-xs text-stone-400">Expert en Ingénierie Minière — <span class="text-brand-copper font-semibold">Géomanager</span></p>
+            </div>
+        </div>
+    </div>
+
+    {% elif erreur %}
+    <!-- ❌ Certificat invalide -->
+    <div class="bg-white rounded-2xl shadow-sm border border-red-200 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-white">Certificat Invalide</h2>
+                <p class="text-red-100 text-sm">{{ erreur }}</p>
+            </div>
+        </div>
+        <div class="p-6 text-center">
+            <p class="text-stone-500 text-sm">Vérifiez le numéro et réessayez. Le numéro doit être au format <code class="font-mono bg-stone-100 px-2 py-0.5 rounded text-brand-teal">GEO-AAAA-XXXX</code>.</p>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

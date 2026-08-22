@@ -1,0 +1,150 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Conditions Générales d'Utilisation — Géomanager{% endblock %}
+
+{% block content %}
+<!-- Fil d'Ariane -->
+<nav class="mb-6 text-sm text-stone-400 flex items-center gap-1.5">
+    <a href="{% url 'courses:home' %}" class="hover:text-amber-600 transition">Accueil</a>
+    <span>›</span>
+    <span class="text-slate-700 font-medium">Conditions d'utilisation</span>
+</nav>
+
+<article class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-10">
+
+        <!-- En-tête -->
+        <div class="text-center mb-10">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-100 flex items-center justify-center mb-4">
+                <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">
+                Conditions Générales d'Utilisation
+            </h1>
+            <p class="mt-2 text-stone-500 text-sm">Dernière mise à jour : 21 août 2026</p>
+        </div>
+
+        <!-- Contenu -->
+        <div class="prose prose-sm max-w-none text-stone-600 leading-relaxed space-y-8">
+
+            <section>
+                <h2 class="text-lg font-bold text-slate-800 mb-3">1. Objet</h2>
+                <p>
+                    Les présentes Conditions Générales d'Utilisation (CGU) régissent l'utilisation de la plateforme
+                    <strong>Géomanager</strong>, plateforme de formation professionnelle en ligne dédiée à l'industrie
+                    minière, géologique et à la sécurité HSE (Hygiène, Sécurité, Environnement).
+                </p>
+                <p>
+                    En accédant ou en utilisant Géomanager, vous acceptez sans réserve les présentes conditions.
+                    Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser la plateforme.
+                </p>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold text-slate-800 mb-3">2. Inscription et compte utilisateur</h2>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>L'inscription est ouverte à toute personne souhaitant suivre des formations en ligne dans le domaine minier.</li>
+                    <li>Chaque utilisateur dispose d'un compte personnel, non transmissible.</li>
+                    <li>L'utilisateur s'engage à fournir des informations exactes lors de son inscription.</li>
+                    <li>L'utilisateur est responsable de la confidentialité de ses identifiants de connexion.</li>
+                    <li>Toute activité suspecte sur un compte doit être signalée immédiatement à l'équipe Géomanager.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold text-slate-800 mb-3">3. Utilisation des contenus</h2>
+                <h3 class="font-semibold text-slate-700 mt-4 mb-2">3.1 Vidéos de formation</h3>
+                <p>
+                    Les vidéos de formation sont mises à disposition à titre personnel et éducatif. Il est strictement
+                    interdit de :
+                </p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Reproduire, distribuer ou diffuser les vidéos sans autorisation écrite préalable.</li>
+                    <li>Enregistrer, capturer ou redistribuer les contenus vidéo.</li>
+                    <li>Utiliser les vidéos dans un cadre commercial non autorisé.</li>
+                </ul>
+
+                <h3 class="font-semibold text-slate-700 mt-4 mb-2">3.2 Documents PDF et ressources</h3>
+                <p>
+                    Les documents PDF, supports de cours et ressources pédagogiques téléchargés depuis Géomanager
+                    sont destinés à un usage personnel uniquement. La redistribution est interdite sans accord explicite.
+                </p>
+
+                <h3 class="font-semibold text-slate-700 mt-4 mb-2">3.3 Propriété intellectuelle</h3>
+                <p>
+                    L'ensemble des contenus (textes, vidéos, images, schémas, quiz) publiés sur Géomanager sont
+                    protégés par le droit d'auteur. Toute contrefaçon peut faire l'objet de poursuites judiciaires.
+                </p>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold text-slate-800 mb-3">4. Examens et certifications</h2>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>Les examens de certification sont composés de questions à choix multiples (QCM).</li>
+                    <li>Chaque examen dispose d'une durée limitée définie par le formateur.</li>
+                    <li>Le score minimum requis pour obtenir la certification est de <strong>70%</strong> (seuil configurable par formation).</li>
+                    <li>Les certificats délivrés valident la réussite de l'examen à la date indiquée.</li>
+                    <li>Géomanager se réserve le droit de invalider un certificat en cas de fraude avérée.</li>
+                    <li>Un score inférieur au seuil de certification entraîne un échec ; l'utilisateur peut repasser l'examen.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold text-slate-800 mb-3">5. Protection des données personnelles</h2>
+                <p>
+                    Conformément à la réglementation en vigueur, Géomanager s'engage à protéger vos données personnelles :
+                </p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong>Données collectées :</strong> nom, adresse email, progression de formation, résultats d'examens.</li>
+                    <li><strong>Finalité :</strong> gestion du compte, suivi pédagogique et délivrance des certificats.</li>
+                    <li><strong>Conservation :</strong> les données sont conservées pendant la durée d'utilisation du compte.</li>
+                    <li><strong>Partage :</strong> vos données ne sont jamais vendues à des tiers.</li>
+                    <li><strong>Suppression :</strong> vous pouvez demander la suppression de votre compte et de vos données en contactant l'administrateur.</li>
+                    <li><strong>Sécurité :</strong> les mots de passe sont stockés de manière hashée ; les connexions sont sécurisées.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold text-slate-800 mb-3">6. Engagements de l'utilisateur</h2>
+                <p>L'utilisateur s'engage à :</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Utiliser la plateforme de manière loyale et conforme à son usage pédagogique.</li>
+                    <li>Ne pas perturber le fonctionnement de la plateforme.</li>
+                    <li>Ne pas usurper l'identité d'un autre utilisateur.</li>
+                    <li>Respecter les droits de propriété intellectuelle des contenus.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold text-slate-800 mb-3">7. Limitation de responsabilité</h2>
+                <p>
+                    Géomanager s'efforce d'assurer l'exactitude des informations publiées. Toutefois, les contenus
+                    de formation ne sauraient se substituer à une formation pratique encadrée. L'utilisation des
+                    connaissances acquises sur la plateforme relève de la responsabilité de l'utilisateur,
+                    notamment dans les environnements professionnels à risque.
+                </p>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold text-slate-800 mb-3">8. Modification des CGU</h2>
+                <p>
+                    Géomanager se réserve le droit de modifier les présentes conditions à tout moment.
+                    Les utilisateurs seront informés de tout changement significatif. La poursuite de l'utilisation
+                    de la plateforme après modification vaut acceptation des nouvelles conditions.
+                </p>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-bold text-slate-800 mb-3">9. Contact</h2>
+                <p>
+                    Pour toute question relative aux présentes CGU ou à l'utilisation de la plateforme,
+                    veuillez contacter l'équipe Géomanager via l'interface d'administration.
+                </p>
+            </section>
+        </div>
+    </div>
+</article>
+{% endblock %}

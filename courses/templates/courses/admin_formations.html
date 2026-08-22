@@ -1,0 +1,85 @@
+{% extends "courses/base.html" %}
+{% block title %}Gestion des Formations — Géomanager{% endblock %}
+
+{% block content %}
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+    <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Mes Formations</h1>
+        <p class="mt-1 text-stone-500 text-sm">Gérez vos programmes de formation minière.</p>
+    </div>
+    <a href="{% url 'courses:admin_formation_add' %}"
+       class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-600
+              text-slate-900 font-bold text-sm shadow-lg shadow-amber-500/20 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Nouvelle formation
+    </a>
+</div>
+
+{% if formations %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for f in formations %}
+        <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-5 flex flex-col">
+            {% if f.image %}
+                <img src="{{ f.image.url }}" alt="{{ f.titre }}" class="w-full h-36 object-cover rounded-xl mb-4">
+            {% else %}
+                <div class="w-full h-36 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl mb-4
+                            flex items-center justify-center">
+                    <svg class="w-12 h-12 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                </div>
+            {% endif %}
+
+            <h3 class="font-bold text-slate-800 text-lg">{{ f.titre }}</h3>
+            {% if f.description %}
+                <p class="text-xs text-stone-500 mt-1 line-clamp-2 flex-1">{{ f.description }}</p>
+            {% endif %}
+
+            <div class="flex items-center gap-3 mt-3 text-xs text-stone-400">
+                <span class="inline-flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                    </svg>
+                    {{ f.nb_modules }} modules
+                </span>
+                <span>{{ f.nb_lecons }} leçons</span>
+                <span>{{ f.nb_examens }} examens</span>
+            </div>
+
+            <div class="flex items-center gap-2 mt-4 pt-3 border-t border-stone-100">
+                <a href="{% url 'courses:admin_formation_edit' f.id %}"
+                   class="flex-1 text-center px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200
+                          text-slate-700 text-xs font-semibold transition">
+                    Modifier
+                </a>
+                <form method="post" action="{% url 'courses:admin_formation_delete' f.id %}"
+                      onsubmit="return confirm('Supprimer cette formation ?')">
+                    {% csrf_token %}
+                    <button class="px-3 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600
+                                   text-xs font-semibold transition">
+                        Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-16 bg-white rounded-2xl border border-stone-100">
+        <svg class="w-16 h-16 mx-auto text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-500">Aucune formation</h3>
+        <p class="mt-1 text-sm text-gray-400">Commencez par créer votre première formation.</p>
+        <a href="{% url 'courses:admin_formation_add' %}"
+           class="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600
+                  text-slate-900 font-bold text-sm transition">
+            Créer une formation
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

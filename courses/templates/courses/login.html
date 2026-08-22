@@ -1,0 +1,156 @@
+{% extends "courses/base.html" %}
+
+{% block title %}Connexion — Géomanager{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-hero {
+        background: linear-gradient(135deg, #1E293B 0%, #334155 50%, #475569 100%);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center -mx-4 sm:-mx-6 lg:-mx-8 -mt-6 px-4 sm:px-6 lg:px-8">
+
+    <div class="w-full max-w-4xl">
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2">
+
+            <!-- ══════ Panneau visuel (PC) ══════ -->
+            <div class="login-hero hidden lg:flex flex-col justify-between p-10 text-white relative overflow-hidden">
+                <!-- Décor -->
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-amber-400/10 rounded-full blur-3xl"></div>
+                <div class="absolute bottom-20 -left-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl"></div>
+
+                <div class="relative z-10">
+                    <a href="{% url 'courses:home' %}" class="flex items-center gap-2 mb-8">
+                        <svg class="w-10 h-10 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        <span class="text-xl font-bold">Géomanager</span>
+                    </a>
+
+                    <h2 class="text-2xl font-extrabold leading-tight">
+                        Formez-vous aux métiers<br>de l'excellence minière
+                    </h2>
+                    <p class="mt-3 text-stone-300 text-sm leading-relaxed">
+                        Accédez à des formations certifiantes en géologie, sécurité HSE,
+                        exploitation et traitement du minerai.
+                    </p>
+                </div>
+
+                <!-- Indicateur visuel -->
+                <div class="relative z-10 mt-8">
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-white/10 backdrop-blur-sm">
+                        <div class="w-10 h-10 rounded-lg bg-amber-400/20 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="text-sm">
+                            <div class="font-semibold">Certification reconnue</div>
+                            <div class="text-stone-400 text-xs">Validée par les professionnels du secteur</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════ Formulaire ══════ -->
+            <div class="p-6 sm:p-10 flex flex-col justify-center">
+                <!-- Logo mobile -->
+                <div class="lg:hidden flex items-center gap-2 mb-6">
+                    <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                    <span class="text-lg font-bold text-slate-800">Géomanager</span>
+                </div>
+
+                <h2 class="text-2xl font-extrabold text-slate-800">Connexion</h2>
+                <p class="mt-1 text-stone-500 text-sm">Accédez à votre espace de formation</p>
+
+                <!-- Messages d'erreur -->
+                {% if form.errors %}
+                    <div class="mt-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+                        Nom d'utilisateur ou mot de passe incorrect.
+                    </div>
+                {% endif %}
+
+                {% if next %}
+                    <div class="mt-4 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
+                        Veuillez vous connecter pour accéder à cette page.
+                    </div>
+                {% endif %}
+
+                <form method="post" class="mt-6 space-y-5">
+                    {% csrf_token %}
+
+                    <!-- Nom d'utilisateur -->
+                    <div>
+                        <label for="id_username" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                            Nom d'utilisateur
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <svg class="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <input type="text" name="username" id="id_username" required autofocus
+                                   class="w-full pl-11 pr-4 py-3 rounded-xl border border-stone-200
+                                          focus:border-amber-400 focus:ring-2 focus:ring-amber-100
+                                          outline-none transition text-sm"
+                                   placeholder="Votre nom d'utilisateur">
+                        </div>
+                    </div>
+
+                    <!-- Mot de passe -->
+                    <div>
+                        <label for="id_password" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                            Mot de passe
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <svg class="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                            </div>
+                            <input type="password" name="password" id="id_password" required
+                                   class="w-full pl-11 pr-4 py-3 rounded-xl border border-stone-200
+                                          focus:border-amber-400 focus:ring-2 focus:ring-amber-100
+                                          outline-none transition text-sm"
+                                   placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <!-- Mot de passe oublié -->
+                    <div class="text-right">
+                        <a href="#" class="text-sm text-amber-600 hover:text-amber-700 font-medium">
+                            Mot de passe oublié ?
+                        </a>
+                    </div>
+
+                    <!-- Bouton -->
+                    <button type="submit"
+                            class="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900
+                                   font-bold text-sm shadow-lg shadow-amber-500/20 transition-all
+                                   duration-200 hover:shadow-amber-500/30 active:scale-[0.98]">
+                        Se connecter
+                    </button>
+                </form>
+
+                <!-- Lien inscription -->
+                <p class="mt-6 text-center text-sm text-stone-500">
+                    Pas encore de compte ?
+                    <a href="{% url 'courses:register' %}" class="text-amber-600 hover:text-amber-700 font-semibold">
+                        Créer un compte
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

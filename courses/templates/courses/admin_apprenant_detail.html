@@ -1,0 +1,73 @@
+{% extends "courses/base.html" %}
+{% block title %}{{ apprenant.get_full_name|default:apprenant.username }} — Géomanager{% endblock %}
+
+{% block content %}
+<nav class="mb-6 text-sm text-stone-400 flex items-center gap-1.5">
+    <a href="{% url 'courses:admin_apprenants' %}" class="hover:text-amber-600 transition">Apprenants</a>
+    <span>›</span>
+    <span class="text-slate-700 font-medium">{{ apprenant.get_full_name|default:apprenant.username }}</span>
+</nav>
+
+<div class="max-w-3xl mx-auto space-y-6">
+    <!-- En-tête -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8">
+        <div class="flex items-center gap-5">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600
+                        flex items-center justify-center text-white text-2xl font-extrabold shadow-lg shadow-amber-500/20">
+                {{ apprenant.username|first|upper }}
+            </div>
+            <div>
+                <h1 class="text-xl font-extrabold text-slate-800">{{ apprenant.get_full_name|default:apprenant.username }}</h1>
+                <p class="text-sm text-stone-500">@{{ apprenant.username }} · {{ apprenant.email|default:"Pas d'email" }}</p>
+                <p class="text-xs text-stone-400 mt-1">Inscrit le {{ apprenant.date_joined|date:"d/m/Y" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tentatives -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Examens passés ({{ tentatives|length }})</h2>
+        {% if tentatives %}
+            <div class="space-y-3">
+                {% for t in tentatives %}
+                <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-stone-50">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">{{ t.examen.titre }}</p>
+                        <p class="text-xs text-stone-400">{{ t.examen.formation.titre }} · {{ t.date_soumission|date:"d/m/Y H:i"|default:"En cours" }}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-lg font-bold {% if t.est_termine and t.note >= t.examen.formation.seuil_certification %}text-emerald-600{% else %}text-stone-400{% endif %}">
+                            {{ t.note }}%
+                        </span>
+                        <span class="block text-xs
+                            {% if t.est_termine and t.note >= t.examen.formation.seuil_certification %}text-emerald-500
+                            {% else %}text-red-500{% endif %}">
+                            {% if t.est_termine and t.note >= t.examen.formation.seuil_certification %}Certifié{% else %}Non validé{% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-sm text-stone-400 text-center py-4">Aucun examen passé.</p>
+        {% endif %}
+    </div>
+
+    <!-- Derniers commentaires -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Derniers commentaires</h2>
+        {% if commentaires %}
+            <div class="space-y-3">
+                {% for c in commentaires %}
+                <div class="px-4 py-3 rounded-xl bg-stone-50">
+                    <p class="text-sm text-stone-700">{{ c.texte|truncatewords:30 }}</p>
+                    <p class="text-xs text-stone-400 mt-1">{{ c.lecon.titre }} · {{ c.date_creation|date:"d/m/Y" }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-sm text-stone-400 text-center py-4">Aucun commentaire.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

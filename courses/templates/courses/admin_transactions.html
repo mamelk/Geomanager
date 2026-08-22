@@ -1,0 +1,121 @@
+{% extends "courses/base.html" %}
+{% block title %}Transactions de paiement — Géomanager{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Transactions de paiement</h1>
+    <p class="mt-1 text-stone-500 text-sm">Suivi des paiements MaishaPay et abonnements.</p>
+</div>
+
+<!-- Stats résumé -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-stone-100 text-center">
+        <div class="text-2xl font-extrabold text-slate-800">{{ total }}</div>
+        <div class="text-xs text-stone-400 mt-1">Transactions totales</div>
+    </div>
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-stone-100 text-center">
+        <div class="text-2xl font-extrabold text-green-600">{{ total_succes }}</div>
+        <div class="text-xs text-stone-400 mt-1">Paiements réussis</div>
+    </div>
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-stone-100 text-center">
+        <div class="text-2xl font-extrabold text-amber-600">{{ total_montant|floatformat:0 }} FC</div>
+        <div class="text-xs text-stone-400 mt-1">Revenu total</div>
+    </div>
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-stone-100 text-center">
+        <div class="text-2xl font-extrabold text-blue-600">{{ abonnements_actifs }}</div>
+        <div class="text-xs text-stone-400 mt-1">Abonnements actifs</div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="flex flex-wrap gap-2 mb-6">
+    <a href="{% url 'courses:admin_transactions' %}?filtre=all"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition
+              {% if filtre == 'all' %}bg-slate-800 text-white{% else %}bg-white text-slate-600 border border-stone-200 hover:bg-stone-50{% endif %}">
+        Toutes
+    </a>
+    <a href="{% url 'courses:admin_transactions' %}?filtre=succes"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition
+              {% if filtre == 'succes' %}bg-green-600 text-white{% else %}bg-white text-slate-600 border border-stone-200 hover:bg-stone-50{% endif %}">
+        Réussies
+    </a>
+    <a href="{% url 'courses:admin_transactions' %}?filtre=en_attente"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition
+              {% if filtre == 'en_attente' %}bg-amber-500 text-white{% else %}bg-white text-slate-600 border border-stone-200 hover:bg-stone-50{% endif %}">
+        En attente
+    </a>
+    <a href="{% url 'courses:admin_transactions' %}?filtre=echec"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition
+              {% if filtre == 'echec' %}bg-red-500 text-white{% else %}bg-white text-slate-600 border border-stone-200 hover:bg-stone-50{% endif %}">
+        Échouées
+    </a>
+</div>
+
+<!-- Liste des transactions -->
+{% if transactions %}
+<div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            <thead class="bg-stone-50 text-stone-500 text-xs uppercase">
+                <tr>
+                    <th class="px-6 py-3">Référence</th>
+                    <th class="px-6 py-3">Apprenant</th>
+                    <th class="px-6 py-3">Réseau</th>
+                    <th class="px-6 py-3">Montant</th>
+                    <th class="px-6 py-3">Statut</th>
+                    <th class="px-6 py-3">Date</th>
+                    <th class="px-6 py-3">Téléphone</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-stone-100">
+                {% for t in transactions %}
+                <tr class="hover:bg-stone-50 transition">
+                    <td class="px-6 py-4 font-mono text-xs text-slate-600">{{ t.reference_externe }}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-slate-700">{{ t.abonnement.utilisateur.get_full_name|default:t.abonnement.utilisateur.username }}</div>
+                        <div class="text-xs text-stone-400">{{ t.abonnement.utilisateur.email }}</div>
+                    </td>
+                    <td class="px-6 py-4 text-slate-700">{{ t.abonnement.get_reseau_display }}</td>
+                    <td class="px-6 py-4 font-bold text-slate-800">{{ t.montant|floatformat:0 }} FC</td>
+                    <td class="px-6 py-4">
+                        {% if t.statut == 'reussi' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                                ✓ Réussi
+                            </span>
+                        {% elif t.statut == 'en_attente' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
+                                ⏳ En attente
+                            </span>
+                        {% elif t.statut == 'echoue' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">
+                                ✗ Échoué
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-stone-100 text-stone-500">
+                                {{ t.statut }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-stone-500 text-xs">{{ t.date_creation|date:"d/m/Y H:i" }}</td>
+                    <td class="px-6 py-4 text-slate-600 font-mono text-xs">{{ t.abonnement.telephone }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="bg-white rounded-2xl p-12 shadow-sm border border-stone-100 text-center">
+    <div class="text-stone-300 text-4xl mb-3">💳</div>
+    <div class="text-stone-500 font-medium">Aucune transaction trouvée.</div>
+    <div class="text-stone-400 text-sm mt-1">Les paiements apparaîtront ici une fois initiés.</div>
+</div>
+{% endif %}
+
+<!-- Lien retour -->
+<div class="mt-6">
+    <a href="{% url 'courses:admin_dashboard' %}" class="text-sm text-slate-600 hover:text-slate-800 font-medium">
+        ← Retour au dashboard
+    </a>
+</div>
+{% endblock %}

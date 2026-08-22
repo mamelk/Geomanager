@@ -1,0 +1,112 @@
+{% extends "courses/base.html" %}
+{% block title %}{% if examen %}Modifier{% else %}Nouvel{% endif %} examen — Géomanager{% endblock %}
+
+{% block content %}
+<nav class="mb-6 text-sm text-stone-400 flex items-center gap-1.5">
+    <a href="{% url 'courses:admin_formations' %}" class="hover:text-amber-600 transition">Formations</a>
+    <span>›</span>
+    <a href="{% url 'courses:admin_formation_edit' formation.id %}" class="hover:text-amber-600 transition">{{ formation.titre }}</a>
+    <span>›</span>
+    <span class="text-slate-700 font-medium">{% if examen %}Modifier{% else %}Nouvel{% endif %} examen</span>
+</nav>
+
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8">
+        <h2 class="text-lg font-bold text-slate-800 mb-5">
+            {% if examen %}Modifier l'examen : {{ examen.titre }}{% else %}Nouvel examen{% endif %}
+        </h2>
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Titre</label>
+                <input type="text" name="titre" value="{{ form.titre.value|default:'' }}" required
+                       class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-amber-400
+                              focus:ring-2 focus:ring-amber-100 outline-none text-sm"
+                       placeholder="Ex: Examen final Géologie">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Description</label>
+                <textarea name="description" rows="2"
+                          class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-amber-400
+                                 focus:ring-2 focus:ring-amber-100 outline-none text-sm">{{ form.description.value|default:'' }}</textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Durée (minutes)</label>
+                    <input type="number" name="duree_minutes" value="{{ form.duree_minutes.value|default:'60' }}" min="1"
+                           class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Note minimale (%)</label>
+                    <input type="number" name="note_minimale" value="{{ form.note_minimale.value|default:'50' }}" min="0" max="100" step="0.01"
+                           class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none text-sm">
+                </div>
+            </div>
+
+            <!-- ══════ Questions ══════ -->
+            <div class="border-t pt-5">
+                <h3 class="font-bold text-slate-700 mb-4">Questions (QCM)</h3>
+                <div id="questions-container" class="space-y-6">
+                    {% for q in questions %}
+                    <div class="question-block border border-stone-200 rounded-xl p-4 space-y-3">
+                        <input type="hidden" name="question_id" value="{{ q.id }}">
+                        <input type="text" name="question_texte" value="{{ q.texte }}" required
+                               placeholder="Texte de la question..."
+                               class="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none font-semibold">
+                        <div class="space-y-2 ml-4">
+                            {% for opt in q.options.all %}
+                            <div class="flex items-center gap-2">
+                                <input type="hidden" name="option_id_{{ q.id }}" value="{{ opt.id }}">
+                                <input type="text" name="option_texte_{{ q.id }}" value="{{ opt.texte }}"
+                                       class="flex-1 px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                                <label class="flex items-center gap-1 text-xs text-stone-500 whitespace-nowrap">
+                                    <input type="checkbox" name="option_correcte_{{ q.id }}" {% if opt.est_correcte %}checked{% endif %}
+                                           class="w-4 h-4 text-amber-600 rounded">
+                                    Correcte
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Nouvelle question vide -->
+                    <div class="question-block border border-dashed border-stone-300 rounded-xl p-4 space-y-3 bg-stone-50">
+                        <input type="hidden" name="question_id" value="">
+                        <input type="text" name="question_texte" placeholder="Nouvelle question..."
+                               class="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none font-semibold">
+                        <div class="space-y-2 ml-4">
+                            {% for i in "1234" %}
+                            <div class="flex items-center gap-2">
+                                <input type="hidden" name="option_id_" value="">
+                                <input type="text" name="option_texte_" placeholder="Option {{ forloop.counter }}"
+                                       class="flex-1 px-3 py-2 rounded-lg border border-stone-200 text-sm focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none">
+                                <label class="flex items-center gap-1 text-xs text-stone-500 whitespace-nowrap">
+                                    <input type="checkbox" name="option_correcte_" class="w-4 h-4 text-amber-600 rounded">
+                                    Correcte
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="submit"
+                        class="px-8 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900
+                               font-bold text-sm shadow-lg shadow-amber-500/20 transition-all">
+                    Enregistrer l'examen
+                </button>
+                <a href="{% url 'courses:admin_formation_edit' formation.id %}"
+                   class="px-6 py-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 font-medium text-sm transition">
+                    Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

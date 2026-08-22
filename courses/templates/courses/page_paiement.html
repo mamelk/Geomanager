@@ -1,0 +1,260 @@
+{% extends "courses/base.html" %}
+{% block title %}Abonnement — Géomanager{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+
+    <!-- En-tête -->
+    <div class="text-center mb-8">
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-teal to-brand-teal-light flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-teal/20">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Abonnement Mensuel</h1>
+        <p class="mt-2 text-stone-500 text-sm">Accédez à toutes les formations certifiantes Géomanager</p>
+    </div>
+
+    <!-- Statut actuel -->
+    {% if statut_abonnement and statut_abonnement.actif %}
+    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-6">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="font-bold text-emerald-800">Abonnement actif</h3>
+                <p class="text-sm text-emerald-600">
+                    Valide jusqu'au {{ statut_abonnement.date_expiration|date:"d/m/Y à H:i" }}
+                    via {{ statut_abonnement.reseau }}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Alerte abonnement requis -->
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="font-bold text-amber-800">Abonnement requis</h3>
+                <p class="text-sm text-amber-600">
+                    Votre abonnement est expiré ou inactif. Souscrivez pour accéder à l'ensemble des formations.
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Carte d'abonnement -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden mb-6">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-brand-teal to-brand-teal-light px-6 py-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Abonnement Mensuel</h2>
+                    <p class="text-brand-copper text-sm font-semibold">Accès complet 30 jours</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-3xl font-extrabold text-white">{{ montant|floatformat:0 }}</div>
+                    <div class="text-xs text-stone-300">CDF / mois</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inclus -->
+        <div class="px-6 py-5">
+            <h3 class="text-sm font-semibold text-slate-800 mb-3">Ce qui est inclus :</h3>
+            <ul class="space-y-2">
+                <li class="flex items-center gap-2 text-sm text-stone-600">
+                    <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Accès illimité à toutes les formations
+                </li>
+                <li class="flex items-center gap-2 text-sm text-stone-600">
+                    <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Vidéos HD + ressources téléchargeables
+                </li>
+                <li class="flex items-center gap-2 text-sm text-stone-600">
+                    <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Examens de certification inclus
+                </li>
+                <li class="flex items-center gap-2 text-sm text-stone-600">
+                    <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Certificats PDF vérifiables
+                </li>
+                <li class="flex items-center gap-2 text-sm text-stone-600">
+                    <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Support technique prioritaire
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Formulaire de paiement -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6">
+        <h3 class="font-bold text-slate-800 mb-4">Payer par Mobile Money</h3>
+
+        <form action="{% url 'courses:initier_paiement' %}" method="POST" class="space-y-4">
+            {% csrf_token %}
+
+            <!-- Réseau Mobile Money -->
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Réseau Mobile Money</label>
+                <div class="grid grid-cols-3 gap-3">
+                    {% for code, label in reseaux %}
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="reseau" value="{{ code }}"
+                               {% if forloop.first %}checked{% endif %}
+                               class="peer sr-only">
+                        <div class="border-2 border-stone-200 rounded-xl p-3 text-center
+                                    peer-checked:border-brand-copper peer-checked:bg-brand-copper/5
+                                    hover:border-stone-300 transition-all">
+                            <div class="text-lg mb-1">
+                                {% if code == 'airtel' %}📱
+                                {% elif code == 'orange' %}🟠
+                                {% elif code == 'mpesa' %}💳
+                                {% endif %}
+                            </div>
+                            <div class="text-xs font-semibold text-slate-700">{{ label }}</div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Numéro de téléphone -->
+            <div>
+                <label for="telephone" class="block text-sm font-semibold text-slate-700 mb-2">
+                    Numéro de téléphone
+                </label>
+                <input type="tel" id="telephone" name="telephone"
+                       placeholder="08XXXXXXXX"
+                       pattern="[0-9]{10,13}"
+                       required
+                       class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50
+                              text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-copper
+                              focus:border-brand-copper font-mono text-lg tracking-wide
+                              placeholder:text-stone-300">
+                <p class="mt-1 text-xs text-stone-400">Numéro utilisé pour le paiement Mobile Money</p>
+            </div>
+
+            <!-- Montant -->
+            <div class="bg-stone-50 rounded-xl p-4 flex items-center justify-between">
+                <span class="text-sm text-stone-500">Montant à payer</span>
+                <span class="text-xl font-extrabold text-brand-teal">{{ montant|floatformat:0 }} CDF</span>
+            </div>
+
+            <!-- Bouton -->
+            <button type="submit"
+                    class="w-full bg-brand-copper hover:bg-brand-copper-dark text-white font-bold py-4 rounded-xl
+                           transition-all shadow-lg shadow-brand-copper/20 text-lg">
+                💳 Payer {{ montant|floatformat:0 }} CDF
+            </button>
+
+            <p class="text-xs text-center text-stone-400">
+                En payant, vous acceptez les <a href="{% url 'courses:terms' %}" class="text-brand-copper hover:underline">conditions d'utilisation</a>.
+                Votre abonnement sera activé immédiatement après confirmation du paiement.
+            </p>
+        </form>
+    </div>
+
+    <!-- Lien retour -->
+    <div class="mt-6 text-center">
+        <a href="{% url 'courses:home' %}" class="text-sm text-stone-400 hover:text-brand-copper transition">
+            ← Retour à l'accueil
+        </a>
+    </div>
+
+</div>
+
+<!-- ── Message de confirmation paiement ── -->
+{% if messages %}
+<div id="payment-toast" class="fixed top-4 right-4 z-50 max-w-sm">
+    {% for message in messages %}
+    <div class="bg-white rounded-2xl shadow-2xl border border-stone-100 p-4 mb-2 animate-slide-in"
+         x-data="{ show: true }" x-show="show" x-init="setTimeout(() => { show = false; }, 8000)">
+        <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0
+                {% if 'error' in message.tags %}bg-red-100 text-red-600
+                {% elif 'success' in message.tags %}bg-emerald-100 text-emerald-600
+                {% else %}bg-amber-100 text-amber-600{% endif %}">
+                {% if 'error' in message.tags %}✕{% elif 'success' in message.tags %}✓{% else %}ℹ{% endif %}
+            </div>
+            <div>
+                <p class="text-sm font-medium text-slate-800">{{ message }}</p>
+            </div>
+            <button @click="show = false" class="text-stone-400 hover:text-stone-600">✕</button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ── Polling JS : vérifie le statut de la transaction ── -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Référence transmise par le serveur après initier_paiement
+    const lastRef = '{% if derniere_reference %}{{ derniere_reference }}{% endif %}';
+    if (!lastRef) return;
+
+    const pollUrl = `/courses/paiement/verifier/${lastRef}/`;
+    let pollCount = 0;
+    const maxPolls = 60; // 2 minutes max (2s × 60)
+
+    const pollInterval = setInterval(async function() {
+        pollCount++;
+        if (pollCount > maxPolls) {
+            clearInterval(pollInterval);
+            return;
+        }
+        try {
+            const resp = await fetch(pollUrl);
+            if (!resp.ok) return;
+            const data = await resp.json();
+
+            if (data.statut === 'reussi') {
+                clearInterval(pollInterval);
+                // Afficher un message de succès et recharger
+                showToast('✅ Paiement confirmé ! Abonnement activé.', 'success');
+                setTimeout(() => window.location.reload(), 2000);
+            } else if (data.statut === 'echoue') {
+                clearInterval(pollInterval);
+                showToast('❌ Le paiement a échoué. Veuillez réessayer.', 'error');
+            }
+        } catch (e) {
+            // Erreur réseau silencieuse
+        }
+    }, 2000);
+});
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 z-50 max-w-sm bg-white rounded-2xl shadow-2xl border border-stone-100 p-4';
+    toast.innerHTML = `<div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${type === 'success' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}">
+            ${type === 'success' ? '✓' : '✕'}
+        </div>
+        <p class="text-sm font-medium text-slate-800">${message}</p>
+    </div>`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 6000);
+}
+</script>
+{% endblock %}

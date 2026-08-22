@@ -1,0 +1,17 @@
+<svg width="200" height="80" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a5e78;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a3a4a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradM" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c88e6e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9e5e3e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <path d="M30 12 L30 52 L48 52 L48 42 L38 42 L38 48 L34 48 L34 16 L48 16 L48 24 L44 24 L44 28 L52 28 L52 12 Z" fill="url(#gradG)" />
+  <path d="M58 12 L58 52 L62 52 L62 22 L70 38 L78 22 L78 52 L82 52 L82 12 L74 12 L70 32 L66 12 Z" fill="url(#gradM)" />
+  <text x="56" y="72" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1a3a4a" text-anchor="middle">
+    Geo<tspan fill="#c88e6e">Manager</tspan>
+  </text>
+</svg>
