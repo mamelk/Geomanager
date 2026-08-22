@@ -17,7 +17,7 @@ class FormationForm(forms.ModelForm):
 class VideoLeconForm(forms.ModelForm):
     class Meta:
         model = VideoLecon
-        fields = ['titre', 'fichier_video', 'video_url', 'duree_minutes']
+        fields = ['titre', 'fichier_video', 'video_url']
 
 
 class RessourceForm(forms.ModelForm):

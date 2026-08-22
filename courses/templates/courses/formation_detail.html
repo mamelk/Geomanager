@@ -85,14 +85,11 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <span class="text-sm font-semibold text-slate-700">{{ v.titre }}</span>
-                    <span class="text-xs text-stone-400 ml-2">{{ v.duree_minutes }} min</span>
+                    <span class="text-xs text-stone-400 ml-2">⏱ {{ v.duree_formatee }}</span>
                 </div>
                 {% if est_inscrit %}
-                    <span class="text-xs text-stone-400 flex-shrink-0">{{ v.duree_formatee }}</span>
-                    {% if est_inscrit %}
                     <a href="{% url 'courses:video_player' formation.id %}?video={{ v.id }}"
                        class="text-xs text-amber-600 hover:text-amber-700 font-semibold">Regarder →</a>
-                    {% endif %}
                 {% endif %}
             </div>
             {% endfor %}

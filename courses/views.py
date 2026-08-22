@@ -871,27 +871,23 @@ def admin_formation_form(request, formation_id=None):
 
             # ── Vidéos ──
             vid_titres = request.POST.getlist('video_titre')
-            vid_durees = request.POST.getlist('video_duree')
             vid_fichiers = request.FILES.getlist('video_fichier')
             vid_urls = request.POST.getlist('video_url')
             # Supprimer les anciennes vidéos si édition
             if formation:
                 f.videos.all().delete()
-            duree_totale = 0
-            for i, (titre, duree) in enumerate(zip(vid_titres, vid_durees)):
+            for i, titre in enumerate(vid_titres):
                 if not titre.strip():
                 	continue
-                d = int(duree) if duree else 0
                 fichier = vid_fichiers[i] if i < len(vid_fichiers) and vid_fichiers[i] else None
                 url = vid_urls[i] if i < len(vid_urls) and vid_urls[i].strip() else None
                 VideoLecon.objects.create(
                     formation=f, titre=titre.strip(),
                     fichier_video=fichier, video_url=url,
-                    duree_minutes=d, ordre=i
+                    ordre=i
                 )
-                duree_totale += d
-            f.duree_totale_minutes = duree_totale
-            f.save(update_fields=['duree_totale_minutes'])
+            # Recalculer la durée totale (auto-détectée par moviepy dans save())
+            f.recalculer_duree()
 
             # ── Ressources complémentaires ──
             res_titres = request.POST.getlist('ressource_titre')
