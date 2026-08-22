@@ -40,8 +40,8 @@ ngrok.exe
 ngrok.zip
 ngrok.log
 
-# Static files (collectés)
-staticfiles/
+# Static files (collectés) — commit pour Vercel
+# staticfiles/
 
 # Migrations (à régénérer)
 # courses/migrations/  # Décommenter si vous voulez les régénérer
