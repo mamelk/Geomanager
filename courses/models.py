@@ -298,8 +298,9 @@ class Abonnement(models.Model):
     ]
     RESEAU_CHOICES = [
         ('airtel', 'Airtel Money'),
+        ('vodacom', 'Vodacom M-Pesa'),
         ('orange', 'Orange Money'),
-        ('mpesa', 'M-Pesa'),
+        ('africell', 'Africell Money'),
     ]
 
     utilisateur = models.OneToOneField(User, on_delete=models.CASCADE, related_name='abonnement')
@@ -388,4 +389,23 @@ class TransactionPaiement(models.Model):
         if reponse:
             self.metadata_reponse = reponse
         self.save(update_fields=['statut', 'metadata_reponse', 'date_mise_a_jour'])
+
+
+class ProlongationAbonnement(models.Model):
+    """Historique des prolongations d'abonnement par un formateur/admin."""
+    abonnement = models.ForeignKey(Abonnement, on_delete=models.CASCADE, related_name='prolongations')
+    jours_ajoutes = models.PositiveIntegerField(default=30)
+    motif = models.CharField(max_length=255, blank=True, default='')
+    ancienne_date_expiration = models.DateTimeField(null=True, blank=True)
+    nouvelle_date_expiration = models.DateTimeField(null=True, blank=True)
+    effectue_par = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='prolongations_effectuees')
+    date_prolongation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Prolongation d\'abonnement'
+        verbose_name_plural = 'Prolongations d\'abonnement'
+        ordering = ['-date_prolongation']
+
+    def __str__(self):
+        return f"Prolongation +{self.jours_ajoutes}j pour {self.abonnement.utilisateur.username} par {self.effectue_par}"
 

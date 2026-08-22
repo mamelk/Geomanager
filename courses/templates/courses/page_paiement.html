@@ -122,14 +122,15 @@
                     <label class="relative cursor-pointer">
                         <input type="radio" name="reseau" value="{{ code }}"
                                {% if forloop.first %}checked{% endif %}
-                               class="peer sr-only">
+                               class="peer sr-only" id="reseau-{{ code }}">
                         <div class="border-2 border-stone-200 rounded-xl p-3 text-center
                                     peer-checked:border-brand-copper peer-checked:bg-brand-copper/5
                                     hover:border-stone-300 transition-all">
                             <div class="text-lg mb-1">
                                 {% if code == 'airtel' %}📱
+                                {% elif code == 'vodacom' %}🔴
                                 {% elif code == 'orange' %}🟠
-                                {% elif code == 'mpesa' %}💳
+                                {% elif code == 'africell' %}🟢
                                 {% endif %}
                             </div>
                             <div class="text-xs font-semibold text-slate-700">{{ label }}</div>
@@ -137,6 +138,7 @@
                     </label>
                     {% endfor %}
                 </div>
+                <p id="reseau-detecte" class="mt-2 text-xs text-emerald-600 font-medium hidden"></p>
             </div>
 
             <!-- Numéro de téléphone -->
@@ -210,6 +212,39 @@
 <!-- ── Polling JS : vérifie le statut de la transaction ── -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ── Détection automatique du réseau mobile ──
+    const telephoneInput = document.getElementById('telephone');
+    const reseauDetecte = document.getElementById('reseau-detecte');
+
+    const prefixMap = {
+        'airtel':  { prefixes: ['097','098','099','97','98','99','+24397','+24398','+24399'], label: '📱 Airtel Money', id: 'reseau-airtel' },
+        'vodacom': { prefixes: ['081','082','083','81','82','83','+24381','+24382','+24383'], label: '🔴 Vodacom M-Pesa', id: 'reseau-vodacom' },
+        'orange':  { prefixes: ['084','085','089','84','85','89','+24384','+24385','+24389'], label: '🟠 Orange Money', id: 'reseau-orange' },
+        'africell':{ prefixes: ['090','091','90','91','+24390','+24391'], label: '🟢 Africell Money', id: 'reseau-africell' },
+    };
+
+    telephoneInput.addEventListener('input', function() {
+        const val = this.value.replace(/[^0-9+]/g, '');
+        if (val.length < 3) {
+            reseauDetecte.classList.add('hidden');
+            return;
+        }
+        for (const [reseau, info] of Object.entries(prefixMap)) {
+            for (const prefix of info.prefixes) {
+                if (val.startsWith(prefix) || val.substring(val.length - 3) === prefix.slice(-3)) {
+                    const radio = document.getElementById(info.id);
+                    if (radio) {
+                        radio.checked = true;
+                        reseauDetecte.textContent = 'Réseau détecté : ' + info.label;
+                        reseauDetecte.classList.remove('hidden');
+                    }
+                    return;
+                }
+            }
+        }
+        reseauDetecte.classList.add('hidden');
+    });
+
     // Référence transmise par le serveur après initier_paiement
     const lastRef = '{% if derniere_reference %}{{ derniere_reference }}{% endif %}';
     if (!lastRef) return;

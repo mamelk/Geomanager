@@ -373,7 +373,7 @@ def verifier_certificat_view(request):
 #  PAIEMENT & ABONNEMENTS
 # ═══════════════════════════════════════
 import uuid
-from .models import Abonnement, TransactionPaiement
+from .models import Abonnement, TransactionPaiement, ProlongationAbonnement
 
 
 def _verifier_signature_maishapay(payload_bytes, signature_header):
@@ -476,7 +476,7 @@ def initier_paiement(request):
     merchant_id = getattr(settings, 'MAISHAPAY_MERCHANT_ID', '')
 
     # Mapper le reseau en majuscules pour l'API
-    provider_map = {'airtel': 'AIRTEL', 'orange': 'ORANGE', 'mpesa': 'MPESA'}
+    provider_map = {'airtel': 'AIRTEL', 'vodacom': 'MPESA', 'orange': 'ORANGE', 'africell': 'AFRICELL'}
     provider_api = provider_map.get(reseau, reseau.upper())
 
     # ── Mode démo : bypass API si MAISHAPAY_DEMO_MODE=True ──
@@ -1124,6 +1124,43 @@ def admin_apprenant_detail(request, user_id):
         'tentatives': tentatives,
         'commentaires': commentaires,
     })
+
+
+@user_passes_test(is_formateur, login_url='courses:login')
+def prolonger_abonnement(request, user_id):
+    """Prolonge l'abonnement d'un apprenant (formateur/admin)."""
+    if request.method != 'POST':
+        return redirect('courses:admin_apprenant_detail', user_id=user_id)
+
+    apprenant = get_object_or_404(User, id=user_id, is_staff=False)
+    jours = int(request.POST.get('jours', 30))
+    motif = request.POST.get('motif', '').strip()
+
+    # Récupérer ou créer l'abonnement
+    abonnement, _ = Abonnement.objects.get_or_create(
+        utilisateur=apprenant,
+        defaults={'reseau': 'airtel', 'telephone': ''},
+    )
+
+    ancienne_date = abonnement.date_expiration
+    abonnement.activer(jours=jours)
+
+    # Enregistrer l'historique
+    ProlongationAbonnement.objects.create(
+        abonnement=abonnement,
+        jours_ajoutes=jours,
+        motif=motif,
+        ancienne_date_expiration=ancienne_date,
+        nouvelle_date_expiration=abonnement.date_expiration,
+        effectue_par=request.user,
+    )
+
+    messages.success(
+        request,
+        f'Abonnement de {apprenant.username} prolongé de {jours} jours. '
+        f'Expire le {abonnement.date_expiration.strftime("%d/%m/%Y")}.'
+    )
+    return redirect('courses:admin_apprenant_detail', user_id=user_id)
 
 
 @user_passes_test(is_formateur, login_url='courses:login')

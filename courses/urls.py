@@ -42,6 +42,7 @@ urlpatterns = [
     path('admin-formations/<int:formation_id>/examen/<int:examen_id>/modifier/', views.admin_examen_form, name='admin_examen_edit'),
     path('admin-apprenants/', views.admin_apprenants, name='admin_apprenants'),
     path('admin-apprenants/<int:user_id>/', views.admin_apprenant_detail, name='admin_apprenant_detail'),
+    path('admin-apprenants/<int:user_id>/prolonger/', views.prolonger_abonnement, name='prolonger_abonnement'),
     path('admin-certifications/', views.admin_certifications, name='admin_certifications'),
     path('admin-transactions/', views.admin_transactions, name='admin_transactions'),
 
