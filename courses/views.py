@@ -731,43 +731,32 @@ def telecharger_certificat(request, tentative_id):
         messages.error(request, 'Vous n\'êtes pas certifié pour cette tentative.')
         return redirect('courses:mes_certifications')
 
-    # Sécuriser les données transmises au générateur PDF
-    apprenant_nom = request.user.get_full_name() or request.user.username or 'Apprenant'
-    titre_formation = getattr(formation, 'titre', 'Formation') or 'Formation'
-    score_val = float(getattr(tentative, 'note', 0) or 0)
-    date_str = tentative.date_soumission.strftime('%d/%m/%Y') if tentative.date_soumission else 'Récemment'
-
-    # Chemin du certificat
-    cert_dir = os.path.join(settings.MEDIA_ROOT, 'certificats')
-    os.makedirs(cert_dir, exist_ok=True)
     filename = f"certificat_{request.user.username}_{formation.id}_{tentative.id}.pdf"
-    filepath = os.path.join(cert_dir, filename)
+    pdf_bytes = None
 
-    # Générer le certificat s'il n'existe pas encore
-    if not os.path.exists(filepath):
+    # 1) Tenter de lire depuis le cache disque (utile en local)
+    try:
+        filepath = os.path.join(settings.MEDIA_ROOT, 'certificats', filename)
+        if os.path.exists(filepath):
+            with open(filepath, 'rb') as f:
+                pdf_bytes = f.read()
+    except OSError:
+        pass
+
+    # 2) Générer en mémoire si pas en cache (compatible serverless)
+    if not pdf_bytes:
         try:
-            url = generer_certificat_pdf(request.user, formation, tentative)
-            if not url:
-                messages.error(request, 'Erreur lors de la génération du certificat : le service a retourné None.')
+            pdf_bytes = generer_certificat_pdf(request.user, formation, tentative)
+            if not pdf_bytes:
+                messages.error(request, 'Erreur lors de la génération du certificat.')
                 return redirect('courses:mes_certifications')
         except Exception as e:
             messages.error(request, f"Erreur lors de la génération du certificat : {str(e)}")
             return redirect('courses:mes_certifications')
 
-    # Servir le fichier — lire en mémoire pour éviter "read of closed file"
-    if os.path.exists(filepath):
-        try:
-            with open(filepath, 'rb') as f:
-                pdf_bytes = f.read()
-            response = HttpResponse(pdf_bytes, content_type='application/pdf')
-            response['Content-Disposition'] = f'inline; filename="{filename}"'
-            return response
-        except Exception as e:
-            messages.error(request, f"Erreur lors de la lecture du certificat : {str(e)}")
-            return redirect('courses:mes_certifications')
-
-    messages.error(request, 'Fichier certificat introuvable.')
-    return redirect('courses:mes_certifications')
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 @login_required
@@ -782,36 +771,32 @@ def visualiser_certificat(request, tentative_id):
         messages.error(request, 'Vous n\'êtes pas certifié pour cette tentative.')
         return redirect('courses:mes_certifications')
 
-    # Chemin du certificat
-    cert_dir = os.path.join(settings.MEDIA_ROOT, 'certificats')
     filename = f"certificat_{request.user.username}_{formation.id}_{tentative.id}.pdf"
-    filepath = os.path.join(cert_dir, filename)
+    pdf_bytes = None
 
-    # Générer si absent
-    if not os.path.exists(filepath):
+    # 1) Tenter de lire depuis le cache disque (utile en local)
+    try:
+        filepath = os.path.join(settings.MEDIA_ROOT, 'certificats', filename)
+        if os.path.exists(filepath):
+            with open(filepath, 'rb') as f:
+                pdf_bytes = f.read()
+    except OSError:
+        pass
+
+    # 2) Générer en mémoire si pas en cache (compatible serverless)
+    if not pdf_bytes:
         try:
-            url = generer_certificat_pdf(request.user, formation, tentative)
-            if not url:
+            pdf_bytes = generer_certificat_pdf(request.user, formation, tentative)
+            if not pdf_bytes:
                 messages.error(request, 'Erreur lors de la génération du certificat.')
                 return redirect('courses:mes_certifications')
         except Exception as e:
             messages.error(request, f"Erreur certificat : {str(e)}")
             return redirect('courses:mes_certifications')
 
-    # Lire le PDF en mémoire et renvoyer en inline
-    if os.path.exists(filepath):
-        try:
-            with open(filepath, 'rb') as f:
-                pdf_bytes = f.read()
-            response = HttpResponse(pdf_bytes, content_type='application/pdf')
-            response['Content-Disposition'] = 'inline; filename="Certificat.pdf"'
-            return response
-        except Exception as e:
-            messages.error(request, f"Erreur lecture certificat : {str(e)}")
-            return redirect('courses:mes_certifications')
-
-    messages.error(request, 'Fichier certificat introuvable.')
-    return redirect('courses:mes_certifications')
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="Certificat.pdf"'
+    return response
 
 
 @user_passes_test(is_formateur, login_url='courses:login')
