@@ -1,4 +1,5 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
 from . import views
 
 app_name = 'courses'
@@ -12,6 +13,23 @@ urlpatterns = [
     path('deconnexion/', views.logout_view, name='logout'),
     path('inscription/', views.register_view, name='register'),
     path('profil/', views.profile_view, name='profile'),
+
+    # Réinitialisation du mot de passe
+    path('mot-de-passe-oublie/', auth_views.PasswordResetView.as_view(
+        template_name='courses/password_reset_form.html',
+        email_template_name='courses/password_reset_email.html',
+        success_url='/courses/mot-de-passe-envoye/',
+    ), name='password_reset'),
+    path('mot-de-passe-envoye/', auth_views.PasswordResetDoneView.as_view(
+        template_name='courses/password_reset_done.html',
+    ), name='password_reset_done'),
+    path('reinitialiser/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+        template_name='courses/password_reset_confirm.html',
+        success_url='/courses/mot-de-passe-reinitialise/',
+    ), name='password_reset_confirm'),
+    path('mot-de-passe-reinitialise/', auth_views.PasswordResetCompleteView.as_view(
+        template_name='courses/password_reset_complete.html',
+    ), name='password_reset_complete'),
     path('conditions-utilisation/', views.terms_view, name='terms'),
     path('a-propos/', views.a_propos_view, name='a_propos'),
 
