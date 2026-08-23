@@ -1168,6 +1168,37 @@ def admin_apprenant_detail(request, user_id):
 
 
 @user_passes_test(is_formateur, login_url='courses:login')
+def admin_reset_password(request, user_id):
+    """Réinitialise le mot de passe d'un apprenant avec un mot de passe aléatoire."""
+    if request.method != 'POST':
+        return redirect('courses:admin_apprenant_detail', user_id=user_id)
+
+    apprenant = get_object_or_404(User, id=user_id, is_staff=False)
+
+    # Générer un mot de passe aléatoire de 12 caractères
+    import secrets
+    import string
+    alphabet = string.ascii_letters + string.digits
+    new_password = ''.join(secrets.choice(alphabet) for _ in range(12))
+    # Ajouter au moins un chiffre et une majuscule si absents
+    if not any(c.isdigit() for c in new_password):
+        new_password = new_password[:-1] + secrets.choice(string.digits)
+    if not any(c.isupper() for c in new_password):
+        new_password = new_password[:-1] + secrets.choice(string.ascii_uppercase)
+
+    apprenant.set_password(new_password)
+    apprenant.save()
+
+    messages.success(
+        request,
+        f'Le mot de passe de {apprenant.username} a été réinitialisé. '
+        f'Nouveau mot de passe : **{new_password}** '
+        f'— Communiquez-le à l\'apprenant de manière sécurisée.'
+    )
+    return redirect('courses:admin_apprenant_detail', user_id=user_id)
+
+
+@user_passes_test(is_formateur, login_url='courses:login')
 def prolonger_abonnement(request, user_id):
     """Prolonge l'abonnement d'un apprenant (formateur/admin)."""
     if request.method != 'POST':

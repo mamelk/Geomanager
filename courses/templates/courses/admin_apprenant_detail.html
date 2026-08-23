@@ -24,6 +24,44 @@
         </div>
     </div>
 
+    <!-- Actions rapides -->
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8" x-data="{ showResetModal: false }">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Actions</h2>
+        <div class="flex flex-wrap gap-3">
+            <button @click="showResetModal = true"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-700
+                           hover:bg-red-100 text-sm font-semibold transition-all">
+                🔑 Réinitialiser le mot de passe
+            </button>
+        </div>
+
+        <!-- Modal confirmation reset mot de passe -->
+        <div x-show="showResetModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display:none">
+            <div class="absolute inset-0 bg-black/40" @click="showResetModal = false"></div>
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+                <h3 class="text-lg font-bold text-slate-800 mb-2">🔑 Réinitialiser le mot de passe</h3>
+                <p class="text-sm text-stone-500 mb-4">
+                    Un nouveau mot de passe aléatoire sera généré pour <strong>{{ apprenant.username }}</strong>.
+                    L'ancien mot de passe ne fonctionnera plus.<br>
+                    Le nouveau mot de passe s'affichera après confirmation — à communiquer à l'apprenant.
+                </p>
+                <form action="{% url 'courses:admin_reset_password' user_id=apprenant.id %}" method="POST">
+                    {% csrf_token %}
+                    <div class="flex gap-3">
+                        <button type="button" @click="showResetModal = false"
+                                class="flex-1 bg-stone-100 hover:bg-stone-200 text-slate-700 font-bold py-3 rounded-xl transition-all">
+                            Annuler
+                        </button>
+                        <button type="submit"
+                                class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-red-500/20">
+                            ✅ Confirmer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Abonnement -->
     <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 sm:p-8" x-data="{ showModal: false }">
         <div class="flex items-center justify-between mb-4">
