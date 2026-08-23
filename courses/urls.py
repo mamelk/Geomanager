@@ -64,6 +64,7 @@ urlpatterns = [
     path('admin-apprenants/', views.admin_apprenants, name='admin_apprenants'),
     path('admin-apprenants/<int:user_id>/', views.admin_apprenant_detail, name='admin_apprenant_detail'),
     path('admin-apprenants/<int:user_id>/reinitialiser-mot-de-passe/', views.admin_reset_password, name='admin_reset_password'),
+    path('admin-apprenants/<int:user_id>/supprimer/', views.admin_supprimer_apprenant, name='admin_supprimer_apprenant'),
     path('admin-apprenants/<int:user_id>/prolonger/', views.prolonger_abonnement, name='prolonger_abonnement'),
     path('admin-certifications/', views.admin_certifications, name='admin_certifications'),
     path('admin-transactions/', views.admin_transactions, name='admin_transactions'),

@@ -1199,6 +1199,19 @@ def admin_reset_password(request, user_id):
 
 
 @user_passes_test(is_formateur, login_url='courses:login')
+def admin_supprimer_apprenant(request, user_id):
+    """Supprime un apprenant et toutes ses données (formateur/admin)."""
+    if request.method != 'POST':
+        return redirect('courses:admin_apprenant_detail', user_id=user_id)
+
+    apprenant = get_object_or_404(User, id=user_id, is_staff=False)
+    username = apprenant.username
+    apprenant.delete()
+    messages.success(request, f'L\'apprenant "{username}" a été supprimé avec succès.')
+    return redirect('courses:admin_apprenants')
+
+
+@user_passes_test(is_formateur, login_url='courses:login')
 def prolonger_abonnement(request, user_id):
     """Prolonge l'abonnement d'un apprenant (formateur/admin)."""
     if request.method != 'POST':
