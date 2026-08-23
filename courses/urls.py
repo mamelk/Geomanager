@@ -68,6 +68,12 @@ urlpatterns = [
     path('admin-certifications/', views.admin_certifications, name='admin_certifications'),
     path('admin-transactions/', views.admin_transactions, name='admin_transactions'),
 
+    # ══ DEMANDES DE FORMATION ══
+    path('demander-formation/', views.demander_formation, name='demander_formation'),
+    path('mes-demandes/', views.mes_demandes, name='mes_demandes'),
+    path('admin-demandes/', views.admin_demandes_formation, name='admin_demandes_formation'),
+    path('admin-demandes/<int:demande_id>/repondre/', views.admin_repondre_demande, name='admin_repondre_demande'),
+
     # ══ CONTENU PUBLIC ══
     path('formations/', views.liste_formations, name='liste_formations'),
     path('formations/<int:formation_id>/', views.formation_detail_view, name='formation_detail'),

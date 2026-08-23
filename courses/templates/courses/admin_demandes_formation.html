@@ -1,0 +1,130 @@
+{% extends "courses/base.html" %}
+{% block title %}Demandes de formation — Géomanager{% endblock %}
+
+{% block content %}
+<nav class="mb-6 text-sm text-stone-400 flex items-center gap-1.5">
+    <a href="{% url 'courses:admin_dashboard' %}" class="hover:text-amber-600 transition">Admin</a>
+    <span>›</span>
+    <span class="text-slate-700 font-medium">Demandes de formation</span>
+</nav>
+
+<div class="max-w-4xl mx-auto space-y-6">
+    <h1 class="text-2xl font-extrabold text-slate-800">📨 Demandes de formation</h1>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <a href="{% url 'courses:admin_demandes_formation' %}"
+           class="bg-white rounded-xl border border-stone-100 p-3 text-center hover:shadow-md transition
+                  {% if not statut_actuel %}ring-2 ring-amber-400{% endif %}">
+            <p class="text-2xl font-bold text-slate-800">{{ stats.total }}</p>
+            <p class="text-xs text-stone-400">Total</p>
+        </a>
+        <a href="?statut=en_attente"
+           class="bg-white rounded-xl border border-stone-100 p-3 text-center hover:shadow-md transition
+                  {% if statut_actuel == 'en_attente' %}ring-2 ring-amber-400{% endif %}">
+            <p class="text-2xl font-bold text-amber-600">{{ stats.en_attente }}</p>
+            <p class="text-xs text-stone-400">En attente</p>
+        </a>
+        <a href="?statut=vue"
+           class="bg-white rounded-xl border border-stone-100 p-3 text-center hover:shadow-md transition
+                  {% if statut_actuel == 'vue' %}ring-2 ring-blue-400{% endif %}">
+            <p class="text-2xl font-bold text-blue-600">{{ stats.vue }}</p>
+            <p class="text-xs text-stone-400">Vues</p>
+        </a>
+        <a href="?statut=acceptee"
+           class="bg-white rounded-xl border border-stone-100 p-3 text-center hover:shadow-md transition
+                  {% if statut_actuel == 'acceptee' %}ring-2 ring-emerald-400{% endif %}">
+            <p class="text-2xl font-bold text-emerald-600">{{ stats.acceptee }}</p>
+            <p class="text-xs text-stone-400">Acceptées</p>
+        </a>
+        <a href="?statut=refusee"
+           class="bg-white rounded-xl border border-stone-100 p-3 text-center hover:shadow-md transition
+                  {% if statut_actuel == 'refusee' %}ring-2 ring-red-400{% endif %}">
+            <p class="text-2xl font-bold text-red-600">{{ stats.refusee }}</p>
+            <p class="text-xs text-stone-400">Refusées</p>
+        </a>
+    </div>
+
+    <!-- Liste des demandes -->
+    {% if demandes %}
+        <div class="space-y-4">
+            {% for d in demandes %}
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-5" x-data="{ open: false }">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h2 class="text-base font-bold text-slate-800">{{ d.titre }}</h2>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
+                                {% if d.statut == 'en_attente' %}bg-amber-100 text-amber-700
+                                {% elif d.statut == 'vue' %}bg-blue-100 text-blue-700
+                                {% elif d.statut == 'acceptee' %}bg-emerald-100 text-emerald-700
+                                {% elif d.statut == 'refusee' %}bg-red-100 text-red-700
+                                {% endif %}">
+                                {{ d.get_statut_display }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-stone-500">
+                            par <strong>{{ d.etudiant.get_full_name|default:d.etudiant.username }}</strong>
+                            {% if d.formation_existante %} — concerne <strong>{{ d.formation_existante.titre }}</strong>{% endif %}
+                        </p>
+                        {% if d.description %}
+                            <p class="text-sm text-stone-500 mt-2">{{ d.description|truncatewords:50 }}</p>
+                        {% endif %}
+                        <p class="text-xs text-stone-400 mt-2">{{ d.date_creation|date:"d/m/Y à H:i" }}</p>
+
+                        {% if d.reponse_formateur %}
+                            <div class="bg-stone-50 rounded-xl p-3 mt-3">
+                                <p class="text-xs font-semibold text-stone-500 mb-1">Votre réponse :</p>
+                                <p class="text-sm text-slate-700">{{ d.reponse_formateur }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <button @click="open = !open"
+                            class="shrink-0 px-3 py-2 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold hover:bg-amber-100 transition">
+                        Répondre
+                    </button>
+                </div>
+
+                <!-- Formulaire de réponse -->
+                <div x-show="open" x-transition class="mt-4 pt-4 border-t border-stone-100" style="display:none">
+                    <form action="{% url 'courses:admin_repondre_demande' demande_id=d.id %}" method="POST" class="space-y-3">
+                        {% csrf_token %}
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Votre réponse</label>
+                            <textarea name="reponse_formateur" rows="3"
+                                      placeholder="Expliquez votre décision à l'apprenant..."
+                                      class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none text-sm">{{ d.reponse_formateur }}</textarea>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <button type="submit" name="action" value="marquer_vue"
+                                    class="px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 transition">
+                                👁 Marquer vue
+                            </button>
+                            <button type="submit" name="action" value="accepter"
+                                    class="px-4 py-2 rounded-lg bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 transition">
+                                ✅ Accepter
+                            </button>
+                            <button type="submit" name="action" value="refuser"
+                                    class="px-4 py-2 rounded-lg bg-red-50 text-red-700 text-xs font-semibold hover:bg-red-100 transition">
+                                ❌ Refuser
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-10 text-center">
+            <p class="text-stone-400">
+                {% if statut_actuel %}
+                    Aucune demande avec le statut « {{ statut_actuel }} ».
+                {% else %}
+                    Aucune demande de formation pour le moment.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

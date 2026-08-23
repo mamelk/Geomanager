@@ -66,6 +66,10 @@
                                class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
                                 Certifications
                             </a>
+                            <a href="{% url 'courses:admin_demandes_formation' %}"
+                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                                Demandes
+                            </a>
                         {% else %}
                             {# ─── MENU APPRENANT ─── #}
                             <a href="{% url 'courses:dashboard' %}"
@@ -79,6 +83,10 @@
                             <a href="{% url 'courses:mes_certifications' %}"
                                class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
                                 Certifications
+                            </a>
+                            <a href="{% url 'courses:mes_demandes' %}"
+                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                                Mes demandes
                             </a>
                         {% endif %}
 

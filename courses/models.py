@@ -395,3 +395,34 @@ class ParametrePlateforme(models.Model):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
 
+
+# ═══════════════════════════════════════
+#  DEMANDES DE FORMATION
+# ═══════════════════════════════════════
+
+class DemandeFormation(models.Model):
+    STATUT_CHOICES = [
+        ('en_attente', 'En attente'),
+        ('vue', 'Vue'),
+        ('acceptee', 'Acceptée'),
+        ('refusee', 'Refusée'),
+    ]
+    etudiant = models.ForeignKey(User, on_delete=models.CASCADE, related_name='demandes_formation')
+    titre = models.CharField(max_length=255, help_text='Titre de la formation souhaitée')
+    description = models.TextField(blank=True, help_text='Pourquoi cette formation ?')
+    formation_existante = models.ForeignKey(
+        Formation, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='demandes', help_text='Formation existante demandée (optionnel)'
+    )
+    statut = models.CharField(max_length=15, choices=STATUT_CHOICES, default='en_attente')
+    reponse_formateur = models.TextField(blank=True, help_text='Réponse du formateur')
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date_creation']
+        verbose_name = 'Demande de formation'
+        verbose_name_plural = 'Demandes de formation'
+
+    def __str__(self):
+        return f"{self.etudiant.username} demande « {self.titre} » ({self.get_statut_display()})"

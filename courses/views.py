@@ -20,7 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
-from .models import Formation, Module, Lecon, Examen, Question, OptionReponse, Commentaire, TentativeExamen, VideoLecon, RessourceComplementaire, Inscription, ProgressionLecon
+from .models import Formation, Module, Lecon, Examen, Question, OptionReponse, Commentaire, TentativeExamen, VideoLecon, RessourceComplementaire, Inscription, ProgressionLecon, DemandeFormation
 from .forms import CommentaireForm, FormationForm, LeconForm, ExamenForm, VideoLeconForm, RessourceForm
 from .services import evaluer_examen, generer_certificat_pdf
 
@@ -1519,3 +1519,100 @@ def passer_examen(request, examen_id):
         'duree_auto_minutes': duree_auto_minutes,
         'nb_questions': nb_questions,
     })
+
+
+# ═══════════════════════════════════════
+#  DEMANDES DE FORMATION
+# ═══════════════════════════════════════
+
+@login_required
+def demander_formation(request):
+    """L'apprenant soumet une demande de formation au formateur."""
+    formations = Formation.objects.all().order_by('titre')
+
+    if request.method == 'POST':
+        titre = request.POST.get('titre', '').strip()
+        description = request.POST.get('description', '').strip()
+        formation_id = request.POST.get('formation_existante')
+
+        if not titre:
+            messages.error(request, 'Veuillez saisir le titre de la formation souhaitée.')
+            return redirect('courses:demander_formation')
+
+        formation_existante = None
+        if formation_id:
+            formation_existante = get_object_or_404(Formation, id=formation_id)
+
+        DemandeFormation.objects.create(
+            etudiant=request.user,
+            titre=titre,
+            description=description,
+            formation_existante=formation_existante,
+        )
+        messages.success(
+            request,
+            'Votre demande a été envoyée au formateur. Vous serez notifié de sa réponse.'
+        )
+        return redirect('courses:mes_demandes')
+
+    return render(request, 'courses/demander_formation.html', {
+        'formations': formations,
+    })
+
+
+@login_required
+def mes_demandes(request):
+    """L'apprenant consulte ses demandes de formation."""
+    demandes = DemandeFormation.objects.filter(etudiant=request.user)
+    return render(request, 'courses/mes_demandes.html', {
+        'demandes': demandes,
+    })
+
+
+@user_passes_test(is_formateur, login_url='courses:login')
+def admin_demandes_formation(request):
+    """Liste de toutes les demandes de formation (côté formateur)."""
+    statut = request.GET.get('statut', '')
+    demandes = DemandeFormation.objects.select_related('etudiant', 'formation_existante')
+    if statut:
+        demandes = demandes.filter(statut=statut)
+    demandes = demandes.order_by('-date_creation')
+
+    stats = {
+        'total': DemandeFormation.objects.count(),
+        'en_attente': DemandeFormation.objects.filter(statut='en_attente').count(),
+        'vue': DemandeFormation.objects.filter(statut='vue').count(),
+        'acceptee': DemandeFormation.objects.filter(statut='acceptee').count(),
+        'refusee': DemandeFormation.objects.filter(statut='refusee').count(),
+    }
+
+    return render(request, 'courses/admin_demandes_formation.html', {
+        'demandes': demandes,
+        'stats': stats,
+        'statut_actuel': statut,
+    })
+
+
+@user_passes_test(is_formateur, login_url='courses:login')
+def admin_repondre_demande(request, demande_id):
+    """Le formateur répond à une demande de formation."""
+    demande = get_object_or_404(DemandeFormation, id=demande_id)
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+        reponse = request.POST.get('reponse_formateur', '').strip()
+
+        demande.reponse_formateur = reponse
+        if action == 'accepter':
+            demande.statut = 'acceptee'
+            messages.success(request, f'Demande de "{demande.etudiant.username}" acceptée.')
+        elif action == 'refuser':
+            demande.statut = 'refusee'
+            messages.success(request, f'Demande de "{demande.etudiant.username}" refusée.')
+        elif action == 'marquer_vue':
+            demande.statut = 'vue'
+            messages.success(request, f'Demande marquée comme vue.')
+        demande.save()
+        return redirect('courses:admin_demandes_formation')
+
+    return redirect('courses:admin_demandes_formation')
