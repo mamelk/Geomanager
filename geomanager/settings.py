@@ -243,8 +243,8 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 4 * 1024 * 1024  # 4 MB pour les payloads JSON
 #  directement depuis le navigateur vers Cloudinary.
 #  Le serveur Django ne stocke que les URLs.
 # ═══════════════════════════════════════
-CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '') or os.environ.get('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME', '')
-CLOUDINARY_UPLOAD_PRESET = os.environ.get('CLOUDINARY_UPLOAD_PRESET', '') or os.environ.get('NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET', '')
+CLOUDINARY_CLOUD_NAME = (os.environ.get('CLOUDINARY_CLOUD_NAME', '') or os.environ.get('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME', '')).strip()
+CLOUDINARY_UPLOAD_PRESET = (os.environ.get('CLOUDINARY_UPLOAD_PRESET', '') or os.environ.get('NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET', '')).strip()
 # API key/secret optionnels — uniquement si upload signé (non recommandé)
 CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '')
 CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
