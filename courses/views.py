@@ -1073,6 +1073,7 @@ def admin_lecon_add(request, module_id):
             titre=request.POST.get('titre', '').strip(),
             contenu=request.POST.get('contenu', '').strip(),
             video_url=request.POST.get('video_url', '').strip() or None,
+            pdf_url=request.POST.get('pdf_url', '').strip(),
             lien_externe=request.POST.get('lien_externe', '').strip() or None,
             duree_minutes=request.POST.get('duree_minutes', 0),
             ordre=request.POST.get('ordre', 0),
