@@ -10,8 +10,8 @@
 
 <div class="max-w-4xl mx-auto space-y-6">
     <!-- Image / Hero -->
-    {% if formation.image %}
-        <img src="{{ formation.image.url }}" alt="{{ formation.titre }}" class="w-full h-48 sm:h-64 object-cover rounded-2xl">
+    {% if formation.image_url %}
+        <img src="{{ formation.image_url }}" alt="{{ formation.titre }}" class="w-full h-48 sm:h-64 object-cover rounded-2xl">
     {% else %}
         <div class="w-full h-48 sm:h-64 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center">
             <svg class="w-20 h-20 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,8 +103,8 @@
         <h2 class="text-lg font-bold text-slate-800 mb-4">Ressources complémentaires</h2>
         <div class="flex flex-wrap gap-3">
             {% for r in ressources %}
-                {% if r.type_ressource == 'fichier' and r.fichier %}
-                    <a href="{{ r.fichier.url }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100 transition">
+                {% if r.type_ressource == 'fichier' and r.fichier_url %}
+                    <a href="{{ r.fichier_url }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100 transition">
                         📄 {{ r.titre }}
                     </a>
                 {% elif r.type_ressource == 'lien' and r.lien_web %}

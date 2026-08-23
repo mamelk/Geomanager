@@ -1,4 +1,3 @@
-import os
 import logging
 from django.db import models
 from django.utils import timezone
@@ -19,7 +18,7 @@ class Formation(models.Model):
     titre = models.CharField(max_length=255)
     domaine = models.CharField(max_length=50, choices=DOMAINE_CHOICES, default='general')
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='formations/', blank=True, null=True)
+    image_url = models.TextField(blank=True, default='', help_text="URL de l'image de couverture (Cloudinary, etc.)")
     instructeur = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='formations')
     seuil_certification = models.DecimalField(max_digits=5, decimal_places=2, default=70.00, help_text="Pourcentage minimum pour obtenir la certification")
     duree_totale_minutes = models.PositiveIntegerField(default=0, help_text="Durée totale calculée automatiquement")
@@ -89,7 +88,7 @@ class Lecon(models.Model):
     titre = models.CharField(max_length=255)
     contenu = models.TextField(blank=True)
     video_url = models.URLField(blank=True, null=True, help_text="URL de la vidéo de la leçon")
-    fichier_pdf = models.FileField(upload_to='lecons/pdf/', blank=True, null=True)
+    pdf_url = models.TextField(blank=True, default='', help_text="URL du PDF uploadé (Cloudinary, etc.)")
     lien_externe = models.URLField(blank=True, null=True, help_text="Lien vers une ressource externe")
     duree_minutes = models.PositiveIntegerField(default=0)
     ordre = models.PositiveIntegerField(default=0)
@@ -105,7 +104,7 @@ class Lecon(models.Model):
 class VideoLecon(models.Model):
     formation = models.ForeignKey(Formation, on_delete=models.CASCADE, related_name='videos')
     titre = models.CharField(max_length=255)
-    fichier_video = models.FileField(upload_to='formations/videos/', blank=True, null=True)
+    video_file_url = models.TextField(blank=True, default='', help_text="URL du fichier vidéo uploadé (Cloudinary, etc.)")
     video_url = models.URLField(blank=True, null=True, help_text="Ou lien vidéo externe (YouTube, etc.)")
     duree_secondes = models.PositiveIntegerField(default=0, help_text="Durée en secondes (calculée automatiquement)")
     duree_minutes = models.PositiveIntegerField(default=0, help_text="Durée en minutes (calculée automatiquement)")
@@ -133,49 +132,9 @@ class VideoLecon(models.Model):
         return f"{m:02d}:{s:02d}"
 
     def save(self, *args, **kwargs):
-        # Détecter si un nouveau fichier vidéo est téléversé
-        detecter_duree = False
-        if self.pk:
-            try:
-                ancien = VideoLecon.objects.get(pk=self.pk)
-                if self.fichier_video and self.fichier_video != ancien.fichier_video:
-                    detecter_duree = True
-                elif not self.duree_secondes and self.fichier_video:
-                    detecter_duree = True
-            except VideoLecon.DoesNotExist:
-                if self.fichier_video:
-                    detecter_duree = True
-        else:
-            if self.fichier_video:
-                detecter_duree = True
-
         super().save(*args, **kwargs)
 
-        # Calculer la durée avec moviepy
-        if detecter_duree and self.fichier_video:
-            self._extraire_duree_video()
 
-    def _extraire_duree_video(self):
-        """Extrait la durée du fichier vidéo avec moviepy."""
-        try:
-            from moviepy import VideoFileClip
-            path = self.fichier_video.path
-            if os.path.exists(path):
-                clip = VideoFileClip(path)
-                duree_s = int(clip.duration)
-                clip.close()
-                self.duree_secondes = duree_s
-                self.duree_minutes = max(1, round(duree_s / 60))
-                # Sauvegarder sans boucle infinie
-                VideoLecon.objects.filter(pk=self.pk).update(
-                    duree_secondes=duree_s,
-                    duree_minutes=self.duree_minutes
-                )
-                # Recalculer la durée totale de la formation
-                self.formation.recalculer_duree()
-                logger.info(f'Durée détectée pour "{self.titre}": {duree_s}s ({self.duree_minutes}min)')
-        except Exception as e:
-            logger.warning(f'Impossible de détecter la durée de "{self.fichier_video}": {e}')
 
 
 class RessourceComplementaire(models.Model):
@@ -186,7 +145,7 @@ class RessourceComplementaire(models.Model):
     formation = models.ForeignKey(Formation, on_delete=models.CASCADE, related_name='ressources')
     titre = models.CharField(max_length=255)
     type_ressource = models.CharField(max_length=10, choices=TYPE_CHOICES, default='fichier')
-    fichier = models.FileField(upload_to='formations/ressources/', blank=True, null=True)
+    fichier_url = models.TextField(blank=True, default='', help_text="URL du fichier uploadé (Cloudinary, etc.)")
     lien_web = models.URLField(blank=True, null=True)
     date_creation = models.DateTimeField(auto_now_add=True)
 

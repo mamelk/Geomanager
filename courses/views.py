@@ -30,6 +30,36 @@ def is_formateur(user):
 
 
 # ═══════════════════════════════════════
+#  UPLOAD CLOUDINARY (signature côté serveur)
+# ═══════════════════════════════════════
+@csrf_exempt
+@user_passes_test(is_formateur, login_url='courses:login')
+def cloudinary_upload_params(request):
+    """
+    Retourne les paramètres pour un upload Cloudinary NON SIGNÉ côté client.
+    Le navigateur envoie le fichier directement vers Cloudinary (pas de passage par Django).
+    On ne renvoie que la cloud_name et l'upload_preset — aucune clé secrète.
+    """
+    cloud_name = settings.CLOUDINARY_CLOUD_NAME
+    upload_preset = settings.CLOUDINARY_UPLOAD_PRESET
+
+    if not cloud_name or not upload_preset:
+        return JsonResponse({
+            'error': 'Cloudinary non configuré. Ajoutez CLOUDINARY_CLOUD_NAME et CLOUDINARY_UPLOAD_PRESET dans .env',
+            'cloud_name': bool(cloud_name),
+            'preset': bool(upload_preset),
+        }, status=500)
+
+    # Upload non signé : le client a besoin de la cloud_name et du preset uniquement
+    # Aucune clé API ni secret n'est exposée côté client
+    return JsonResponse({
+        'cloud_name': cloud_name,
+        'upload_preset': upload_preset,
+        'signed': False,
+    })
+
+
+# ═══════════════════════════════════════
 #  PAGE D'ACCUEIL
 # ═══════════════════════════════════════
 def home(request):
@@ -871,7 +901,8 @@ def admin_formation_form(request, formation_id=None):
         titre_page = 'Nouvelle formation'
 
     if request.method == 'POST':
-        form = FormationForm(request.POST, request.FILES, instance=formation)
+        # Pas de request.FILES — les fichiers sont uploadés directement vers Cloudinary côté client
+        form = FormationForm(request.POST, instance=formation)
         if form.is_valid():
             f = form.save(commit=False)
             if not f.instructeur:
@@ -880,39 +911,43 @@ def admin_formation_form(request, formation_id=None):
 
             # ── Vidéos ──
             vid_titres = request.POST.getlist('video_titre')
-            vid_fichiers = request.FILES.getlist('video_fichier')
-            vid_urls = request.POST.getlist('video_url')
+            vid_file_urls = request.POST.getlist('video_file_url')  # URLs Cloudinary uploadées côté client
+            vid_urls = request.POST.getlist('video_url')  # Liens externes (YouTube, etc.)
+            vid_durees = request.POST.getlist('video_duree_secondes')  # Durée auto-détectée côté client
             # Supprimer les anciennes vidéos si édition
             if formation:
                 f.videos.all().delete()
             for i, titre in enumerate(vid_titres):
                 if not titre.strip():
-                	continue
-                fichier = vid_fichiers[i] if i < len(vid_fichiers) and vid_fichiers[i] else None
-                url = vid_urls[i] if i < len(vid_urls) and vid_urls[i].strip() else None
+                    continue
+                file_url = vid_file_urls[i] if i < len(vid_file_urls) and vid_file_urls[i].strip() else ''
+                ext_url = vid_urls[i] if i < len(vid_urls) and vid_urls[i].strip() else None
+                duree_s = int(vid_durees[i]) if i < len(vid_durees) and vid_durees[i].strip() else 0
                 VideoLecon.objects.create(
                     formation=f, titre=titre.strip(),
-                    fichier_video=fichier, video_url=url,
+                    video_file_url=file_url, video_url=ext_url,
+                    duree_secondes=duree_s,
+                    duree_minutes=max(1, round(duree_s / 60)) if duree_s > 0 else 0,
                     ordre=i
                 )
-            # Recalculer la durée totale (auto-détectée par moviepy dans save())
+            # Recalculer la durée totale
             f.recalculer_duree()
 
             # ── Ressources complémentaires ──
             res_titres = request.POST.getlist('ressource_titre')
             res_types = request.POST.getlist('ressource_type')
-            res_fichiers = request.FILES.getlist('ressource_fichier')
+            res_file_urls = request.POST.getlist('ressource_fichier_url')  # URLs Cloudinary
             res_liens = request.POST.getlist('ressource_lien')
             if formation:
                 f.ressources.all().delete()
             for i, (titre, rtype) in enumerate(zip(res_titres, res_types)):
                 if not titre.strip():
-                	continue
-                fichier = res_fichiers[i] if i < len(res_fichiers) and res_fichiers[i] else None
+                    continue
+                file_url = res_file_urls[i] if i < len(res_file_urls) and res_file_urls[i].strip() else ''
                 lien = res_liens[i] if i < len(res_liens) and res_liens[i].strip() else None
                 RessourceComplementaire.objects.create(
                     formation=f, titre=titre.strip(),
-                    type_ressource=rtype, fichier=fichier, lien_web=lien
+                    type_ressource=rtype, fichier_url=file_url, lien_web=lien
                 )
 
             # ── Examen QCM ──

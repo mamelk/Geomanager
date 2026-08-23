@@ -48,6 +48,9 @@ urlpatterns = [
     path('certificat/<int:tentative_id>/telecharger/', views.telecharger_certificat, name='telecharger_certificat'),
     path('certificat/<int:tentative_id>/visualiser/', views.visualiser_certificat, name='visualiser_certificat'),
 
+    # ══ UPLOAD CLOUDINARY ══
+    path('api/cloudinary-params/', views.cloudinary_upload_params, name='cloudinary_upload_params'),
+
     # ══ FORMATEUR / ADMIN ══
     path('admin-dashboard/', views.admin_dashboard_view, name='admin_dashboard'),
     path('admin-formations/', views.admin_formations, name='admin_formations'),

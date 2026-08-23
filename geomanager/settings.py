@@ -94,6 +94,17 @@ WSGI_APPLICATION = 'geomanager.wsgi.application'
 
 import dj_database_url
 
+# Retirer channel_binding=require si présent (casse la connexion sur Vercel)
+_raw_db_url = os.environ.get('DATABASE_URL', '')
+if 'channel_binding' in _raw_db_url:
+    import re as _re
+    _cleaned = _re.sub(r'[?&]channel_binding=require', '', _raw_db_url)
+    if _cleaned.endswith('?') or _cleaned.endswith('&'):
+        _cleaned = _cleaned.rstrip('?&')
+    os.environ['DATABASE_URL'] = _cleaned
+
+del _raw_db_url
+
 DATABASES = {
     'default': dj_database_url.config(
         default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
@@ -186,6 +197,16 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
     },
 }
 
@@ -203,10 +224,27 @@ SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 
+# Vercel / reverse-proxy : Django doit savoir que le HTTPS vient du proxy
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # Session
 SESSION_COOKIE_AGE = 86400 * 7  # 7 jours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
-# Files upload
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+# Files upload — plus besoin de limiter puisque les fichiers vont directement vers Cloudinary
+FILE_UPLOAD_MAX_MEMORY_SIZE = 0  # Désactivé : upload client-side vers Cloudinary
+DATA_UPLOAD_MAX_MEMORY_SIZE = 4 * 1024 * 1024  # 4 MB pour les payloads JSON
+
+
+# ═══════════════════════════════════════
+#  CLOUDINARY — Upload direct côté client
+#  Les fichiers (images, vidéos, PDF) sont uploadés
+#  directement depuis le navigateur vers Cloudinary.
+#  Le serveur Django ne stocke que les URLs.
+# ═══════════════════════════════════════
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '') or os.environ.get('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME', '')
+CLOUDINARY_UPLOAD_PRESET = os.environ.get('CLOUDINARY_UPLOAD_PRESET', '') or os.environ.get('NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET', '')
+# API key/secret optionnels — uniquement si upload signé (non recommandé)
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '')
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
