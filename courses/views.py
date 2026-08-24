@@ -20,13 +20,43 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
-from .models import Formation, Module, Lecon, Examen, Question, OptionReponse, Commentaire, TentativeExamen, VideoLecon, RessourceComplementaire, Inscription, ProgressionLecon
+from .models import Formation, Module, Lecon, Examen, Question, OptionReponse, Commentaire, TentativeExamen, VideoLecon, RessourceComplementaire, Inscription, ProgressionLecon, DemandeFormation
 from .forms import CommentaireForm, FormationForm, LeconForm, ExamenForm, VideoLeconForm, RessourceForm
 from .services import evaluer_examen, generer_certificat_pdf
 
 
 def is_formateur(user):
     return user.is_authenticated and (user.is_staff or user.username.lower() == 'admin')
+
+
+# ═══════════════════════════════════════
+#  UPLOAD CLOUDINARY (signature côté serveur)
+# ═══════════════════════════════════════
+@csrf_exempt
+@user_passes_test(is_formateur, login_url='courses:login')
+def cloudinary_upload_params(request):
+    """
+    Retourne les paramètres pour un upload Cloudinary NON SIGNÉ côté client.
+    Le navigateur envoie le fichier directement vers Cloudinary (pas de passage par Django).
+    On ne renvoie que la cloud_name et l'upload_preset — aucune clé secrète.
+    """
+    cloud_name = settings.CLOUDINARY_CLOUD_NAME
+    upload_preset = settings.CLOUDINARY_UPLOAD_PRESET
+
+    if not cloud_name or not upload_preset:
+        return JsonResponse({
+            'error': 'Cloudinary non configuré. Ajoutez CLOUDINARY_CLOUD_NAME et CLOUDINARY_UPLOAD_PRESET dans .env',
+            'cloud_name': bool(cloud_name),
+            'preset': bool(upload_preset),
+        }, status=500)
+
+    # Upload non signé : le client a besoin de la cloud_name et du preset uniquement
+    # Aucune clé API ni secret n'est exposée côté client
+    return JsonResponse({
+        'cloud_name': cloud_name,
+        'upload_preset': upload_preset,
+        'signed': False,
+    })
 
 
 # ═══════════════════════════════════════
@@ -373,20 +403,18 @@ def verifier_certificat_view(request):
 #  PAIEMENT & ABONNEMENTS
 # ═══════════════════════════════════════
 import uuid
-from .models import Abonnement, TransactionPaiement
+from .models import Abonnement, TransactionPaiement, ProlongationAbonnement, ParametrePlateforme
 
 
 def _verifier_signature_maishapay(payload_bytes, signature_header):
     """
     Vérifie la signature HMAC envoyée par MaishaPay dans le header X-MaishaPay-Signature.
     Retourne True si la signature est valide, False sinon.
-    Si pas de SECRET_KEY configuré, on accepte (mode dev).
     """
     secret = getattr(settings, 'MAISHAPAY_SECRET_KEY', '')
     if not secret:
-        # Pas de clé secrète configurée → mode développement
-        logger.warning('MAISHAPAY_SECRET_KEY non configurée — signature non vérifiée (mode dev)')
-        return True
+        logger.error('MAISHAPAY_SECRET_KEY non configurée — callback rejeté (sécurité)')
+        return False
     if not signature_header:
         logger.warning('Callback MaishaPay sans header de signature')
         return False
@@ -411,7 +439,9 @@ def page_paiement(request):
         }
 
     reseaux = Abonnement.RESEAU_CHOICES
-    montant = getattr(settings, 'MAISHAPAY_MONTANT_ABONNEMENT', 10000)
+    params = ParametrePlateforme.get_instance()
+    montant = params.montant_abonnement
+    monnaie = params.monnaie
 
     # Récupérer la dernière référence de transaction (pour le polling JS)
     derniere_reference = request.session.pop('gm_derniere_reference', None)
@@ -421,6 +451,7 @@ def page_paiement(request):
         'statut_abonnement': statut_abonnement,
         'reseaux': reseaux,
         'montant': montant,
+        'monnaie': monnaie,
         'derniere_reference': derniere_reference,
     })
 
@@ -432,16 +463,23 @@ def initier_paiement(request):
         return redirect('courses:page_paiement')
 
     reseau = request.POST.get('reseau', 'airtel')
-    telephone = request.POST.get('telephone', '').strip()
+    valid_reseaux = dict(Abonnement.RESEAU_CHOICES).keys()
+    if reseau not in valid_reseaux:
+        reseau = 'airtel'
+    telephone = request.POST.get('telephone', '').strip()[:20]
 
     if not telephone:
         messages.error(request, 'Veuillez saisir votre numéro de téléphone.')
         return redirect('courses:page_paiement')
 
     # Nettoyer le numéro (enlever espaces et tirets, garder le +)
-    telephone = telephone.replace(' ', '').replace('-', '')
+    import re
+    telephone = re.sub(r'[^0-9+]', '', telephone)
     if not telephone.startswith('+'):
         telephone = '+' + telephone
+    if len(telephone) < 10 or len(telephone) > 15:
+        messages.error(request, 'Numéro de téléphone invalide.')
+        return redirect('courses:page_paiement')
 
     # Récupérer ou créer l'abonnement
     abonnement, _ = Abonnement.objects.get_or_create(
@@ -456,18 +494,19 @@ def initier_paiement(request):
 
     # Créer la transaction
     reference = f"GM-{timezone.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
-    montant = getattr(settings, 'MAISHAPAY_MONTANT_ABONNEMENT', 10000)
+    params = ParametrePlateforme.get_instance()
+    montant = params.montant_abonnement
 
     transaction = TransactionPaiement.objects.create(
         abonnement=abonnement,
         reference_externe=reference,
         montant=montant,
-        devise='CDF',
+        devise=params.monnaie,
         telephone=telephone,
         reseau=reseau,
     )
 
-    logger.info(f"Transaction {reference} créée pour {telephone} ({reseau}) — {montant} CDF")
+    logger.info(f"Transaction {reference} créée pour {telephone} ({reseau}) — {montant} {params.monnaie}")
 
     # ── Appel à l'API MaishaPay Sandbox ──
     api_url = getattr(settings, 'MAISHAPAY_API_URL', '')
@@ -476,8 +515,24 @@ def initier_paiement(request):
     merchant_id = getattr(settings, 'MAISHAPAY_MERCHANT_ID', '')
 
     # Mapper le reseau en majuscules pour l'API
-    provider_map = {'airtel': 'AIRTEL', 'orange': 'ORANGE', 'mpesa': 'MPESA'}
+    provider_map = {'airtel': 'AIRTEL', 'vodacom': 'MPESA', 'orange': 'ORANGE', 'africell': 'AFRICELL'}
     provider_api = provider_map.get(reseau, reseau.upper())
+
+    # ── Mode démo : bypass API si MAISHAPAY_DEMO_MODE=True ──
+    if getattr(settings, 'MAISHAPAY_DEMO_MODE', False):
+        logger.info(f"Transaction {reference}: MODE DÉMO actif — activation immédiate")
+        transaction.marquer_reussi({
+            'mode': 'demo',
+            'message': 'Mode démo activé — activation sans appel API MaishaPay',
+        })
+        abonnement.activer(jours=getattr(settings, 'MAISHAPAY_DUREE_ABONNEMENT_JOURS', 30))
+        messages.success(
+            request,
+            f'✅ Paiement de {montant} {params.monnaie} confirmé (mode démo). '
+            f'Votre abonnement est actif pour {params.duree_abonnement_jours} jours.'
+        )
+        request.session['gm_derniere_reference'] = reference
+        return redirect('courses:dashboard')
 
     if api_url and public_key and secret_key:
         try:
@@ -488,7 +543,7 @@ def initier_paiement(request):
                 'gatewayMode': 0,
                 'transactionReference': reference,
                 'amount': float(montant),
-                'currency': 'CDF',
+                'currency': params.monnaie,
                 'chanel': 'MOBILEMONEY',
                 'provider': provider_api,
                 'walletID': telephone,
@@ -518,7 +573,7 @@ def initier_paiement(request):
                 messages.success(
                     request,
                     f'Paiement initié. Vérifiez votre téléphone ({telephone}) '
-                    f'pour confirmer le transfert de {montant} CDF.'
+                    f'pour confirmer le transfert de {montant} {params.monnaie}.'
                 )
             else:
                 logger.error(f"Erreur API MaishaPay {reference}: HTTP {resp.status_code} — {resp.text[:300]}")
@@ -542,8 +597,8 @@ def initier_paiement(request):
         transaction.marquer_reussi({'mode': 'demo', 'message': 'Clé API non configurée — activation démo'})
         messages.success(
             request,
-            f'✅ Paiement de {montant} CDF confirmé (mode démo). '
-            f'Votre abonnement est actif pour 30 jours.'
+            f'✅ Paiement de {montant} {params.monnaie} confirmé (mode démo). '
+            f'Votre abonnement est actif pour {params.duree_abonnement_jours} jours.'
         )
 
     # Stocker la référence dans la session pour le polling côté client
@@ -731,43 +786,32 @@ def telecharger_certificat(request, tentative_id):
         messages.error(request, 'Vous n\'êtes pas certifié pour cette tentative.')
         return redirect('courses:mes_certifications')
 
-    # Sécuriser les données transmises au générateur PDF
-    apprenant_nom = request.user.get_full_name() or request.user.username or 'Apprenant'
-    titre_formation = getattr(formation, 'titre', 'Formation') or 'Formation'
-    score_val = float(getattr(tentative, 'note', 0) or 0)
-    date_str = tentative.date_soumission.strftime('%d/%m/%Y') if tentative.date_soumission else 'Récemment'
-
-    # Chemin du certificat
-    cert_dir = os.path.join(settings.MEDIA_ROOT, 'certificats')
-    os.makedirs(cert_dir, exist_ok=True)
     filename = f"certificat_{request.user.username}_{formation.id}_{tentative.id}.pdf"
-    filepath = os.path.join(cert_dir, filename)
+    pdf_bytes = None
 
-    # Générer le certificat s'il n'existe pas encore
-    if not os.path.exists(filepath):
+    # 1) Tenter de lire depuis le cache disque (utile en local)
+    try:
+        filepath = os.path.join(settings.MEDIA_ROOT, 'certificats', filename)
+        if os.path.exists(filepath):
+            with open(filepath, 'rb') as f:
+                pdf_bytes = f.read()
+    except OSError:
+        pass
+
+    # 2) Générer en mémoire si pas en cache (compatible serverless)
+    if not pdf_bytes:
         try:
-            url = generer_certificat_pdf(request.user, formation, tentative)
-            if not url:
-                messages.error(request, 'Erreur lors de la génération du certificat : le service a retourné None.')
+            pdf_bytes = generer_certificat_pdf(request.user, formation, tentative)
+            if not pdf_bytes:
+                messages.error(request, 'Erreur lors de la génération du certificat.')
                 return redirect('courses:mes_certifications')
         except Exception as e:
             messages.error(request, f"Erreur lors de la génération du certificat : {str(e)}")
             return redirect('courses:mes_certifications')
 
-    # Servir le fichier — lire en mémoire pour éviter "read of closed file"
-    if os.path.exists(filepath):
-        try:
-            with open(filepath, 'rb') as f:
-                pdf_bytes = f.read()
-            response = HttpResponse(pdf_bytes, content_type='application/pdf')
-            response['Content-Disposition'] = f'inline; filename="{filename}"'
-            return response
-        except Exception as e:
-            messages.error(request, f"Erreur lors de la lecture du certificat : {str(e)}")
-            return redirect('courses:mes_certifications')
-
-    messages.error(request, 'Fichier certificat introuvable.')
-    return redirect('courses:mes_certifications')
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 @login_required
@@ -782,36 +826,32 @@ def visualiser_certificat(request, tentative_id):
         messages.error(request, 'Vous n\'êtes pas certifié pour cette tentative.')
         return redirect('courses:mes_certifications')
 
-    # Chemin du certificat
-    cert_dir = os.path.join(settings.MEDIA_ROOT, 'certificats')
     filename = f"certificat_{request.user.username}_{formation.id}_{tentative.id}.pdf"
-    filepath = os.path.join(cert_dir, filename)
+    pdf_bytes = None
 
-    # Générer si absent
-    if not os.path.exists(filepath):
+    # 1) Tenter de lire depuis le cache disque (utile en local)
+    try:
+        filepath = os.path.join(settings.MEDIA_ROOT, 'certificats', filename)
+        if os.path.exists(filepath):
+            with open(filepath, 'rb') as f:
+                pdf_bytes = f.read()
+    except OSError:
+        pass
+
+    # 2) Générer en mémoire si pas en cache (compatible serverless)
+    if not pdf_bytes:
         try:
-            url = generer_certificat_pdf(request.user, formation, tentative)
-            if not url:
+            pdf_bytes = generer_certificat_pdf(request.user, formation, tentative)
+            if not pdf_bytes:
                 messages.error(request, 'Erreur lors de la génération du certificat.')
                 return redirect('courses:mes_certifications')
         except Exception as e:
             messages.error(request, f"Erreur certificat : {str(e)}")
             return redirect('courses:mes_certifications')
 
-    # Lire le PDF en mémoire et renvoyer en inline
-    if os.path.exists(filepath):
-        try:
-            with open(filepath, 'rb') as f:
-                pdf_bytes = f.read()
-            response = HttpResponse(pdf_bytes, content_type='application/pdf')
-            response['Content-Disposition'] = 'inline; filename="Certificat.pdf"'
-            return response
-        except Exception as e:
-            messages.error(request, f"Erreur lecture certificat : {str(e)}")
-            return redirect('courses:mes_certifications')
-
-    messages.error(request, 'Fichier certificat introuvable.')
-    return redirect('courses:mes_certifications')
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="Certificat.pdf"'
+    return response
 
 
 @user_passes_test(is_formateur, login_url='courses:login')
@@ -861,7 +901,8 @@ def admin_formation_form(request, formation_id=None):
         titre_page = 'Nouvelle formation'
 
     if request.method == 'POST':
-        form = FormationForm(request.POST, request.FILES, instance=formation)
+        # Pas de request.FILES — les fichiers sont uploadés directement vers Cloudinary côté client
+        form = FormationForm(request.POST, instance=formation)
         if form.is_valid():
             f = form.save(commit=False)
             if not f.instructeur:
@@ -870,43 +911,43 @@ def admin_formation_form(request, formation_id=None):
 
             # ── Vidéos ──
             vid_titres = request.POST.getlist('video_titre')
-            vid_durees = request.POST.getlist('video_duree')
-            vid_fichiers = request.FILES.getlist('video_fichier')
-            vid_urls = request.POST.getlist('video_url')
+            vid_file_urls = request.POST.getlist('video_file_url')  # URLs Cloudinary uploadées côté client
+            vid_urls = request.POST.getlist('video_url')  # Liens externes (YouTube, etc.)
+            vid_durees = request.POST.getlist('video_duree_secondes')  # Durée auto-détectée côté client
             # Supprimer les anciennes vidéos si édition
             if formation:
                 f.videos.all().delete()
-            duree_totale = 0
-            for i, (titre, duree) in enumerate(zip(vid_titres, vid_durees)):
+            for i, titre in enumerate(vid_titres):
                 if not titre.strip():
-                	continue
-                d = int(duree) if duree else 0
-                fichier = vid_fichiers[i] if i < len(vid_fichiers) and vid_fichiers[i] else None
-                url = vid_urls[i] if i < len(vid_urls) and vid_urls[i].strip() else None
+                    continue
+                file_url = vid_file_urls[i] if i < len(vid_file_urls) and vid_file_urls[i].strip() else ''
+                ext_url = vid_urls[i] if i < len(vid_urls) and vid_urls[i].strip() else None
+                duree_s = int(vid_durees[i]) if i < len(vid_durees) and vid_durees[i].strip() else 0
                 VideoLecon.objects.create(
                     formation=f, titre=titre.strip(),
-                    fichier_video=fichier, video_url=url,
-                    duree_minutes=d, ordre=i
+                    video_file_url=file_url, video_url=ext_url,
+                    duree_secondes=duree_s,
+                    duree_minutes=max(1, round(duree_s / 60)) if duree_s > 0 else 0,
+                    ordre=i
                 )
-                duree_totale += d
-            f.duree_totale_minutes = duree_totale
-            f.save(update_fields=['duree_totale_minutes'])
+            # Recalculer la durée totale
+            f.recalculer_duree()
 
             # ── Ressources complémentaires ──
             res_titres = request.POST.getlist('ressource_titre')
             res_types = request.POST.getlist('ressource_type')
-            res_fichiers = request.FILES.getlist('ressource_fichier')
+            res_file_urls = request.POST.getlist('ressource_fichier_url')  # URLs Cloudinary
             res_liens = request.POST.getlist('ressource_lien')
             if formation:
                 f.ressources.all().delete()
             for i, (titre, rtype) in enumerate(zip(res_titres, res_types)):
                 if not titre.strip():
-                	continue
-                fichier = res_fichiers[i] if i < len(res_fichiers) and res_fichiers[i] else None
+                    continue
+                file_url = res_file_urls[i] if i < len(res_file_urls) and res_file_urls[i].strip() else ''
                 lien = res_liens[i] if i < len(res_liens) and res_liens[i].strip() else None
                 RessourceComplementaire.objects.create(
                     formation=f, titre=titre.strip(),
-                    type_ressource=rtype, fichier=fichier, lien_web=lien
+                    type_ressource=rtype, fichier_url=file_url, lien_web=lien
                 )
 
             # ── Examen QCM ──
@@ -1032,6 +1073,7 @@ def admin_lecon_add(request, module_id):
             titre=request.POST.get('titre', '').strip(),
             contenu=request.POST.get('contenu', '').strip(),
             video_url=request.POST.get('video_url', '').strip() or None,
+            pdf_url=request.POST.get('pdf_url', '').strip(),
             lien_externe=request.POST.get('lien_externe', '').strip() or None,
             duree_minutes=request.POST.get('duree_minutes', 0),
             ordre=request.POST.get('ordre', 0),
@@ -1123,6 +1165,93 @@ def admin_apprenant_detail(request, user_id):
         'tentatives': tentatives,
         'commentaires': commentaires,
     })
+
+
+@user_passes_test(is_formateur, login_url='courses:login')
+def admin_reset_password(request, user_id):
+    """Réinitialise le mot de passe d'un apprenant avec un mot de passe aléatoire."""
+    if request.method != 'POST':
+        return redirect('courses:admin_apprenant_detail', user_id=user_id)
+
+    apprenant = get_object_or_404(User, id=user_id, is_staff=False)
+
+    # Générer un mot de passe aléatoire de 12 caractères
+    import secrets
+    import string
+    alphabet = string.ascii_letters + string.digits
+    new_password = ''.join(secrets.choice(alphabet) for _ in range(12))
+    # Ajouter au moins un chiffre et une majuscule si absents
+    if not any(c.isdigit() for c in new_password):
+        new_password = new_password[:-1] + secrets.choice(string.digits)
+    if not any(c.isupper() for c in new_password):
+        new_password = new_password[:-1] + secrets.choice(string.ascii_uppercase)
+
+    apprenant.set_password(new_password)
+    apprenant.save()
+
+    messages.success(
+        request,
+        f'Le mot de passe de {apprenant.username} a été réinitialisé. '
+        f'Nouveau mot de passe : **{new_password}** '
+        f'— Communiquez-le à l\'apprenant de manière sécurisée.'
+    )
+    return redirect('courses:admin_apprenant_detail', user_id=user_id)
+
+
+@user_passes_test(is_formateur, login_url='courses:login')
+def admin_supprimer_apprenant(request, user_id):
+    """Supprime un apprenant et toutes ses données (formateur/admin)."""
+    if request.method != 'POST':
+        return redirect('courses:admin_apprenant_detail', user_id=user_id)
+
+    apprenant = get_object_or_404(User, id=user_id, is_staff=False)
+    username = apprenant.username
+    apprenant.delete()
+    messages.success(request, f'L\'apprenant "{username}" a été supprimé avec succès.')
+    return redirect('courses:admin_apprenants')
+
+
+@user_passes_test(is_formateur, login_url='courses:login')
+def prolonger_abonnement(request, user_id):
+    """Prolonge l'abonnement d'un apprenant (formateur/admin)."""
+    if request.method != 'POST':
+        return redirect('courses:admin_apprenant_detail', user_id=user_id)
+
+    apprenant = get_object_or_404(User, id=user_id, is_staff=False)
+    try:
+        jours = int(request.POST.get('jours', 30))
+        if jours < 1 or jours > 365:
+            raise ValueError
+    except (ValueError, TypeError):
+        messages.error(request, 'Nombre de jours invalide.')
+        return redirect('courses:admin_apprenant_detail', user_id=user_id)
+    motif = request.POST.get('motif', '').strip()[:255]
+
+    # Récupérer ou créer l'abonnement
+    abonnement, _ = Abonnement.objects.get_or_create(
+        utilisateur=apprenant,
+        defaults={'reseau': 'airtel', 'telephone': ''},
+    )
+
+    ancienne_date = abonnement.date_expiration
+    abonnement.activer(jours=jours)
+
+    # Enregistrer l'historique
+    ProlongationAbonnement.objects.create(
+        abonnement=abonnement,
+        jours_ajoutes=jours,
+        motif=motif,
+        ancienne_date_expiration=ancienne_date,
+        nouvelle_date_expiration=abonnement.date_expiration,
+        effectue_par=request.user,
+    )
+
+    messages.success(
+        request,
+        f'Abonnement de {apprenant.username} prolongé de {jours} jours. '
+        f'Expire le {abonnement.date_expiration.strftime("%d/%m/%Y")}.'
+    )
+    return redirect('courses:admin_apprenant_detail', user_id=user_id)
 
 
 @user_passes_test(is_formateur, login_url='courses:login')
@@ -1337,6 +1466,7 @@ def marquer_video_vue_view(request, video_id):
     return redirect('courses:video_player', formation_id=video.formation.id)
 
 
+@login_required
 def detail_lecon(request, lecon_id):
     lecon = get_object_or_404(Lecon, id=lecon_id)
     commentaires = lecon.commentaires.all()
@@ -1403,3 +1533,100 @@ def passer_examen(request, examen_id):
         'duree_auto_minutes': duree_auto_minutes,
         'nb_questions': nb_questions,
     })
+
+
+# ═══════════════════════════════════════
+#  DEMANDES DE FORMATION
+# ═══════════════════════════════════════
+
+@login_required
+def demander_formation(request):
+    """L'apprenant soumet une demande de formation au formateur."""
+    formations = Formation.objects.all().order_by('titre')
+
+    if request.method == 'POST':
+        titre = request.POST.get('titre', '').strip()
+        description = request.POST.get('description', '').strip()
+        formation_id = request.POST.get('formation_existante')
+
+        if not titre:
+            messages.error(request, 'Veuillez saisir le titre de la formation souhaitée.')
+            return redirect('courses:demander_formation')
+
+        formation_existante = None
+        if formation_id:
+            formation_existante = get_object_or_404(Formation, id=formation_id)
+
+        DemandeFormation.objects.create(
+            etudiant=request.user,
+            titre=titre,
+            description=description,
+            formation_existante=formation_existante,
+        )
+        messages.success(
+            request,
+            'Votre demande a été envoyée au formateur. Vous serez notifié de sa réponse.'
+        )
+        return redirect('courses:mes_demandes')
+
+    return render(request, 'courses/demander_formation.html', {
+        'formations': formations,
+    })
+
+
+@login_required
+def mes_demandes(request):
+    """L'apprenant consulte ses demandes de formation."""
+    demandes = DemandeFormation.objects.filter(etudiant=request.user)
+    return render(request, 'courses/mes_demandes.html', {
+        'demandes': demandes,
+    })
+
+
+@user_passes_test(is_formateur, login_url='courses:login')
+def admin_demandes_formation(request):
+    """Liste de toutes les demandes de formation (côté formateur)."""
+    statut = request.GET.get('statut', '')
+    demandes = DemandeFormation.objects.select_related('etudiant', 'formation_existante')
+    if statut:
+        demandes = demandes.filter(statut=statut)
+    demandes = demandes.order_by('-date_creation')
+
+    stats = {
+        'total': DemandeFormation.objects.count(),
+        'en_attente': DemandeFormation.objects.filter(statut='en_attente').count(),
+        'vue': DemandeFormation.objects.filter(statut='vue').count(),
+        'acceptee': DemandeFormation.objects.filter(statut='acceptee').count(),
+        'refusee': DemandeFormation.objects.filter(statut='refusee').count(),
+    }
+
+    return render(request, 'courses/admin_demandes_formation.html', {
+        'demandes': demandes,
+        'stats': stats,
+        'statut_actuel': statut,
+    })
+
+
+@user_passes_test(is_formateur, login_url='courses:login')
+def admin_repondre_demande(request, demande_id):
+    """Le formateur répond à une demande de formation."""
+    demande = get_object_or_404(DemandeFormation, id=demande_id)
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+        reponse = request.POST.get('reponse_formateur', '').strip()
+
+        demande.reponse_formateur = reponse
+        if action == 'accepter':
+            demande.statut = 'acceptee'
+            messages.success(request, f'Demande de "{demande.etudiant.username}" acceptée.')
+        elif action == 'refuser':
+            demande.statut = 'refusee'
+            messages.success(request, f'Demande de "{demande.etudiant.username}" refusée.')
+        elif action == 'marquer_vue':
+            demande.statut = 'vue'
+            messages.success(request, f'Demande marquée comme vue.')
+        demande.save()
+        return redirect('courses:admin_demandes_formation')
+
+    return redirect('courses:admin_demandes_formation')

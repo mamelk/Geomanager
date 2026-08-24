@@ -1,4 +1,3 @@
-import os
 import logging
 from django.db import models
 from django.utils import timezone
@@ -19,7 +18,7 @@ class Formation(models.Model):
     titre = models.CharField(max_length=255)
     domaine = models.CharField(max_length=50, choices=DOMAINE_CHOICES, default='general')
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='formations/', blank=True, null=True)
+    image_url = models.TextField(blank=True, default='', help_text="URL de l'image de couverture (Cloudinary, etc.)")
     instructeur = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='formations')
     seuil_certification = models.DecimalField(max_digits=5, decimal_places=2, default=70.00, help_text="Pourcentage minimum pour obtenir la certification")
     duree_totale_minutes = models.PositiveIntegerField(default=0, help_text="Durée totale calculée automatiquement")
@@ -89,7 +88,7 @@ class Lecon(models.Model):
     titre = models.CharField(max_length=255)
     contenu = models.TextField(blank=True)
     video_url = models.URLField(blank=True, null=True, help_text="URL de la vidéo de la leçon")
-    fichier_pdf = models.FileField(upload_to='lecons/pdf/', blank=True, null=True)
+    pdf_url = models.TextField(blank=True, default='', help_text="URL du PDF uploadé (Cloudinary, etc.)")
     lien_externe = models.URLField(blank=True, null=True, help_text="Lien vers une ressource externe")
     duree_minutes = models.PositiveIntegerField(default=0)
     ordre = models.PositiveIntegerField(default=0)
@@ -105,7 +104,7 @@ class Lecon(models.Model):
 class VideoLecon(models.Model):
     formation = models.ForeignKey(Formation, on_delete=models.CASCADE, related_name='videos')
     titre = models.CharField(max_length=255)
-    fichier_video = models.FileField(upload_to='formations/videos/', blank=True, null=True)
+    video_file_url = models.TextField(blank=True, default='', help_text="URL du fichier vidéo uploadé (Cloudinary, etc.)")
     video_url = models.URLField(blank=True, null=True, help_text="Ou lien vidéo externe (YouTube, etc.)")
     duree_secondes = models.PositiveIntegerField(default=0, help_text="Durée en secondes (calculée automatiquement)")
     duree_minutes = models.PositiveIntegerField(default=0, help_text="Durée en minutes (calculée automatiquement)")
@@ -133,49 +132,9 @@ class VideoLecon(models.Model):
         return f"{m:02d}:{s:02d}"
 
     def save(self, *args, **kwargs):
-        # Détecter si un nouveau fichier vidéo est téléversé
-        detecter_duree = False
-        if self.pk:
-            try:
-                ancien = VideoLecon.objects.get(pk=self.pk)
-                if self.fichier_video and self.fichier_video != ancien.fichier_video:
-                    detecter_duree = True
-                elif not self.duree_secondes and self.fichier_video:
-                    detecter_duree = True
-            except VideoLecon.DoesNotExist:
-                if self.fichier_video:
-                    detecter_duree = True
-        else:
-            if self.fichier_video:
-                detecter_duree = True
-
         super().save(*args, **kwargs)
 
-        # Calculer la durée avec moviepy
-        if detecter_duree and self.fichier_video:
-            self._extraire_duree_video()
 
-    def _extraire_duree_video(self):
-        """Extrait la durée du fichier vidéo avec moviepy."""
-        try:
-            from moviepy import VideoFileClip
-            path = self.fichier_video.path
-            if os.path.exists(path):
-                clip = VideoFileClip(path)
-                duree_s = int(clip.duration)
-                clip.close()
-                self.duree_secondes = duree_s
-                self.duree_minutes = max(1, round(duree_s / 60))
-                # Sauvegarder sans boucle infinie
-                VideoLecon.objects.filter(pk=self.pk).update(
-                    duree_secondes=duree_s,
-                    duree_minutes=self.duree_minutes
-                )
-                # Recalculer la durée totale de la formation
-                self.formation.recalculer_duree()
-                logger.info(f'Durée détectée pour "{self.titre}": {duree_s}s ({self.duree_minutes}min)')
-        except Exception as e:
-            logger.warning(f'Impossible de détecter la durée de "{self.fichier_video}": {e}')
 
 
 class RessourceComplementaire(models.Model):
@@ -186,7 +145,7 @@ class RessourceComplementaire(models.Model):
     formation = models.ForeignKey(Formation, on_delete=models.CASCADE, related_name='ressources')
     titre = models.CharField(max_length=255)
     type_ressource = models.CharField(max_length=10, choices=TYPE_CHOICES, default='fichier')
-    fichier = models.FileField(upload_to='formations/ressources/', blank=True, null=True)
+    fichier_url = models.TextField(blank=True, default='', help_text="URL du fichier uploadé (Cloudinary, etc.)")
     lien_web = models.URLField(blank=True, null=True)
     date_creation = models.DateTimeField(auto_now_add=True)
 
@@ -298,8 +257,9 @@ class Abonnement(models.Model):
     ]
     RESEAU_CHOICES = [
         ('airtel', 'Airtel Money'),
+        ('vodacom', 'Vodacom M-Pesa'),
         ('orange', 'Orange Money'),
-        ('mpesa', 'M-Pesa'),
+        ('africell', 'Africell Money'),
     ]
 
     utilisateur = models.OneToOneField(User, on_delete=models.CASCADE, related_name='abonnement')
@@ -389,3 +349,80 @@ class TransactionPaiement(models.Model):
             self.metadata_reponse = reponse
         self.save(update_fields=['statut', 'metadata_reponse', 'date_mise_a_jour'])
 
+
+class ProlongationAbonnement(models.Model):
+    """Historique des prolongations d'abonnement par un formateur/admin."""
+    abonnement = models.ForeignKey(Abonnement, on_delete=models.CASCADE, related_name='prolongations')
+    jours_ajoutes = models.PositiveIntegerField(default=30)
+    motif = models.CharField(max_length=255, blank=True, default='')
+    ancienne_date_expiration = models.DateTimeField(null=True, blank=True)
+    nouvelle_date_expiration = models.DateTimeField(null=True, blank=True)
+    effectue_par = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='prolongations_effectuees')
+    date_prolongation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Prolongation d\'abonnement'
+        verbose_name_plural = 'Prolongations d\'abonnement'
+        ordering = ['-date_prolongation']
+
+    def __str__(self):
+        return f"Prolongation +{self.jours_ajoutes}j pour {self.abonnement.utilisateur.username} par {self.effectue_par}"
+
+
+class ParametrePlateforme(models.Model):
+    """Paramètres configurables de la plateforme (singleton)."""
+    monnaie = models.CharField(
+        max_length=3,
+        choices=[('CDF', 'Franc congolais (CDF)'), ('USD', 'Dollar américain (USD)')],
+        default='CDF',
+    )
+    montant_abonnement = models.DecimalField(
+        max_digits=10, decimal_places=2, default=10000,
+        help_text='Montant de l\'abonnement mensuel',
+    )
+    duree_abonnement_jours = models.PositiveIntegerField(default=30)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Paramètre de la plateforme'
+        verbose_name_plural = 'Paramètres de la plateforme'
+
+    def __str__(self):
+        return f"{self.montant_abonnement} {self.monnaie} / {self.duree_abonnement_jours}j"
+
+    @classmethod
+    def get_instance(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+# ═══════════════════════════════════════
+#  DEMANDES DE FORMATION
+# ═══════════════════════════════════════
+
+class DemandeFormation(models.Model):
+    STATUT_CHOICES = [
+        ('en_attente', 'En attente'),
+        ('vue', 'Vue'),
+        ('acceptee', 'Acceptée'),
+        ('refusee', 'Refusée'),
+    ]
+    etudiant = models.ForeignKey(User, on_delete=models.CASCADE, related_name='demandes_formation')
+    titre = models.CharField(max_length=255, help_text='Titre de la formation souhaitée')
+    description = models.TextField(blank=True, help_text='Pourquoi cette formation ?')
+    formation_existante = models.ForeignKey(
+        Formation, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='demandes', help_text='Formation existante demandée (optionnel)'
+    )
+    statut = models.CharField(max_length=15, choices=STATUT_CHOICES, default='en_attente')
+    reponse_formateur = models.TextField(blank=True, help_text='Réponse du formateur')
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date_creation']
+        verbose_name = 'Demande de formation'
+        verbose_name_plural = 'Demandes de formation'
+
+    def __str__(self):
+        return f"{self.etudiant.username} demande « {self.titre} » ({self.get_statut_display()})"

@@ -1,5 +1,4 @@
 {% extends "courses/base.html" %}
-{% load static %}
 
 {% block title %}Géomanager — Plateforme de Formation Minière & Exploration{% endblock %}
 
@@ -66,7 +65,20 @@
             <div class="flex-shrink-0 w-full lg:w-auto">
                 <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 max-w-sm mx-auto lg:mx-0">
                     <div class="flex items-center gap-3 mb-4">
-                        <img src="{% static 'geomanager_logo_small.svg' %}" alt="GM" class="h-8">
+                        <svg width="32" height="26" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" class="h-8">
+                            <defs>
+                                <linearGradient id="home-gradG" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#2a5e78;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#1a3a4a;stop-opacity:1" />
+                                </linearGradient>
+                                <linearGradient id="home-gradM" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#c88e6e;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#9e5e3e;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <path d="M30 12 L30 52 L48 52 L48 42 L38 42 L38 48 L34 48 L34 16 L48 16 L48 24 L44 24 L44 28 L52 28 L52 12 Z" fill="url(#home-gradG)" />
+                            <path d="M58 12 L58 52 L62 52 L62 22 L70 38 L78 22 L78 52 L82 52 L82 12 L74 12 L70 32 L66 12 Z" fill="url(#home-gradM)" />
+                        </svg>
                         <div class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Aperçu plateforme</div>
                     </div>
                     <div class="space-y-3">
@@ -233,13 +245,13 @@
         <p class="text-stone-300 mb-6 max-w-lg mx-auto">
             Saisissez le numéro unique (format GEO-AAAA-XXXX) inscrit sur le document pour confirmer sa validité.
         </p>
-        <form action="{% url 'courses:verifier_certificat' %}" method="GET" class="max-w-md mx-auto flex gap-2">
+        <form action="{% url 'courses:verifier_certificat' %}" method="GET" class="max-w-md mx-auto flex flex-col sm:flex-row gap-2">
             <input type="text" name="numero" placeholder="GEO-2026-XXXX" required
-                   class="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white
+                   class="flex-1 min-w-0 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white
                           focus:outline-none focus:border-brand-copper font-mono tracking-wide
                           placeholder:text-stone-400">
             <button type="submit"
-                    class="bg-brand-copper hover:bg-brand-copper-dark text-white font-bold px-6 py-3 rounded-xl transition-all">
+                    class="shrink-0 bg-brand-copper hover:bg-brand-copper-dark text-white font-bold px-6 py-3 rounded-xl transition-all">
                 Vérifier
             </button>
         </form>
