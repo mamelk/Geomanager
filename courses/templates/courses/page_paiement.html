@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const lastRef = '{% if derniere_reference %}{{ derniere_reference }}{% endif %}';
     if (!lastRef) return;
 
-    const pollUrl = `/courses/paiement/verifier/${lastRef}/`;
+    const pollUrl = `/paiement/verifier/${lastRef}/`;
     let pollCount = 0;
     const maxPolls = 60; // 2 minutes max (2s × 60)
 

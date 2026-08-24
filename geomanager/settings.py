@@ -159,6 +159,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
+LOGIN_URL = 'courses:login'
 LOGIN_REDIRECT_URL = 'courses:dashboard'
 LOGOUT_REDIRECT_URL = 'courses:home'
 

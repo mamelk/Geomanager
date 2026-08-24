@@ -1,4 +1,5 @@
 from django.urls import path
+from django.urls import reverse_lazy
 from django.contrib.auth import views as auth_views
 from . import views
 
@@ -18,14 +19,14 @@ urlpatterns = [
     path('mot-de-passe-oublie/', auth_views.PasswordResetView.as_view(
         template_name='courses/password_reset_form.html',
         email_template_name='courses/password_reset_email.html',
-        success_url='/courses/mot-de-passe-envoye/',
+        success_url=reverse_lazy('courses:password_reset_done'),
     ), name='password_reset'),
     path('mot-de-passe-envoye/', auth_views.PasswordResetDoneView.as_view(
         template_name='courses/password_reset_done.html',
     ), name='password_reset_done'),
     path('reinitialiser/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
         template_name='courses/password_reset_confirm.html',
-        success_url='/courses/mot-de-passe-reinitialise/',
+        success_url=reverse_lazy('courses:password_reset_complete'),
     ), name='password_reset_confirm'),
     path('mot-de-passe-reinitialise/', auth_views.PasswordResetCompleteView.as_view(
         template_name='courses/password_reset_complete.html',
