@@ -1324,7 +1324,6 @@ def admin_transactions(request):
 # ═══════════════════════════════════════
 #  FORMATIONS & CONTENU
 # ═══════════════════════════════════════
-@login_required
 def liste_formations(request):
     formations = Formation.objects.all()
     user_inscriptions = []
@@ -1349,7 +1348,6 @@ def inscription_view(request, formation_id):
     return redirect('courses:video_player', formation_id=formation.id)
 
 
-@login_required
 def formation_detail_view(request, formation_id):
     formation = get_object_or_404(Formation, id=formation_id)
     est_inscrit = False
