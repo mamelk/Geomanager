@@ -245,13 +245,13 @@
         <p class="text-stone-300 mb-6 max-w-lg mx-auto">
             Saisissez le numéro unique (format GEO-AAAA-XXXX) inscrit sur le document pour confirmer sa validité.
         </p>
-        <form action="{% url 'courses:verifier_certificat' %}" method="GET" class="max-w-md mx-auto flex gap-2">
+        <form action="{% url 'courses:verifier_certificat' %}" method="GET" class="max-w-md mx-auto flex flex-col sm:flex-row gap-2">
             <input type="text" name="numero" placeholder="GEO-2026-XXXX" required
-                   class="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white
+                   class="flex-1 min-w-0 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white
                           focus:outline-none focus:border-brand-copper font-mono tracking-wide
                           placeholder:text-stone-400">
             <button type="submit"
-                    class="bg-brand-copper hover:bg-brand-copper-dark text-white font-bold px-6 py-3 rounded-xl transition-all">
+                    class="shrink-0 bg-brand-copper hover:bg-brand-copper-dark text-white font-bold px-6 py-3 rounded-xl transition-all">
                 Vérifier
             </button>
         </form>
