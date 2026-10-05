@@ -15,12 +15,17 @@ import hmac
 import hashlib
 import logging
 import requests as http_requests
+import uuid
 from django.http import Http404, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
-from .models import Formation, Module, Lecon, Examen, Question, OptionReponse, Commentaire, TentativeExamen, VideoLecon, RessourceComplementaire, Inscription, ProgressionLecon, DemandeFormation
+from .models import (
+    Formation, Module, Lecon, Examen, Question, OptionReponse,
+    Commentaire, TentativeExamen, VideoLecon, RessourceComplementaire,
+    Inscription, ProgressionLecon, DemandeFormation, Media,
+)
 from .forms import CommentaireForm, FormationForm, LeconForm, ExamenForm, VideoLeconForm, RessourceForm
 from .services import evaluer_examen, generer_certificat_pdf
 
@@ -57,6 +62,58 @@ def cloudinary_upload_params(request):
         'upload_preset': upload_preset,
         'signed': False,
     })
+
+
+# ═══════════════════════════════════════
+#  UPLOAD NOTEUR (photo de mine) — média perso de l'utilisateur
+@login_required
+def media_photo_upload(request):
+    """Prend une photo (type 'photo') depuis le formulaire multipart et la stocke sous MEDIA_ROOT/media/photo/..."""
+    if request.method == 'POST':
+        fichier = request.FILES.get('photo')
+        if not fichier:
+            messages.error(request, 'Aucun fichier sélectionné.')
+            return redirect('courses:media_photo_form')
+
+        # Type autorisé : photo
+        if fichier.content_type not in ('image/jpeg', 'image/png', 'image/webp'):
+            messages.error(request, 'Format non supporté. Envoyez un JPEG, PNG ou WebP.')
+            return redirect('courses:media_photo_form')
+
+        # 1) Construction du chemin relatif : photo/AAAA/AA/BBBB.jpg
+        ext = fichier.name.rsplit('.', 1)[-1].lower()
+        if '.' in fichier.name and not ext:
+            ext = 'bin'
+        safe_name = f"{uuid.uuid4().hex}.{ext}"
+        today = timezone.now()
+        rel = f"photo/{today.year}/{today.month:02d}/{safe_name}"
+
+        # 2) S'assurer du dossier</li>
+        media_photo_dir = os.path.join(settings.MEDIA_ROOT, f"photo\{today.year}\{today.month:02d}")
+        os.makedirs(media_photo_dir, exist_ok=True)
+
+        # 3) Copie vers le disque (gicher le fichier persisté)
+        filepath = os.path.join(settings.MEDIA_ROOT, rel.lstrip('/'))
+        try:
+            with open(filepath, 'wb+') as dst:
+                for chunk in fichier.chunks():
+                    dst.write(chunk)
+        except OSError as e:
+            logger.warning(f'Erreur écriture média photo: {e}')
+            messages.error(request, 'Impossible d\'écrire le fichier sur le disque.')
+            return redirect('courses:media_photo_form')
+
+        # 4) Enregistrement du modèle Media
+        Media.objects.create(
+            user=request.user,
+            file_type='photo',
+            path=rel,  # type: ignore[arg-type]
+            titre=fichier.name,
+        )
+        messages.success(request, 'Photo de mine photographiée enregistrée.')
+        return redirect('courses:media_photo_form')
+
+    return render(request, 'courses/media_photo_form.html')
 
 
 # ═══════════════════════════════════════
@@ -121,6 +178,11 @@ def home(request):
         if count > 0:
             domaines.append({'code': code, 'label': label, 'count': count})
 
+    # Photo de mine photographiée par l'utilisateur (media/photo)
+    mine_photo = None
+    if request.user.is_authenticated:
+        mine_photo = Media.latest_photo(request.user)
+
     return render(request, 'courses/home.html', {
         'stats': stats,
         'formations_recentes': formations_recentes,
@@ -129,6 +191,7 @@ def home(request):
         'total_lecons': total_lecons,
         'nb_certifies': nb_certifies,
         'total_heures': total_heures,
+        'mine_photo': mine_photo,
     })
 
 

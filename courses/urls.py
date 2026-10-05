@@ -49,7 +49,9 @@ urlpatterns = [
     path('certificat/<int:tentative_id>/telecharger/', views.telecharger_certificat, name='telecharger_certificat'),
     path('certificat/<int:tentative_id>/visualiser/', views.visualiser_certificat, name='visualiser_certificat'),
 
-    # ══ UPLOAD CLOUDINARY ══
+    # ══ UPLOAD NOTEUR (photo de mine) — média perso de l'utilisateur ══
+    path('media/photo/upload/', views.media_photo_upload, name='media_photo_upload'),
+
     path('api/cloudinary-params/', views.cloudinary_upload_params, name='cloudinary_upload_params'),
 
     # ══ FORMATEUR / ADMIN ══

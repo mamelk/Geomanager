@@ -1,6 +1,8 @@
 import logging
+import os
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
 from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
@@ -164,6 +166,51 @@ class Commentaire(models.Model):
 
     def __str__(self):
         return f"Commentaire de {self.auteur.username} sur {self.lecon.titre}"
+
+
+class Media(models.Model):
+    """Fichiers téléversés par l'utilisateur (photos, vidéos, PDFs, etc.).
+
+    Les fichiers sont stockés sur le disque dans ``MEDIA_ROOT/<type>/...`` et leurs
+    chemins textuels sont servis par Django via l'URL ``MEDIA_URL``.
+    """
+    TYPES = [
+        ('photo', 'Photo'),
+        ('video', 'Vidéo'),
+        ('document', 'Document'),
+        ('autre', 'Autre'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='media_uploads')
+    file_type = models.CharField(max_length=10, choices=TYPES, default='photo')
+    path = models.TextField(
+        help_text="Chemin relatif du fichier dans MEDIA_ROOT (ex: 'media/photo/2026/08/01/xxxx.jpg')",
+        db_index=True,
+    )
+    titre = models.CharField(max_length=255, blank=True, default='')
+    date_ajout = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_ajout']
+        verbose_name = 'Média téléversé'
+        verbose_name_plural = 'Médias téléversés'
+
+    def __str__(self):
+        return f"{self.user.username} · {self.titre or self.get_file_type_display()}"
+
+    @property
+    def full_path(self):
+        """Chemin absolu complet pour libération/lecture du fichier."""
+        return os.path.join(settings.MEDIA_ROOT, self.path.lstrip('/'))
+
+    @property
+    def url(self):
+        """URL Django correctement construite pour le fichier."""
+        return f"{settings.MEDIA_URL}{self.path.lstrip('/')}"
+
+    @classmethod
+    def latest_photo(cls, user):
+        """Retourne la dernière photo (type='photo') de l'utilisateur, ou None."""
+        return cls.objects.filter(user=user, file_type='photo').first()
 
 
 class Examen(models.Model):
