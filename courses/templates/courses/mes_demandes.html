@@ -1,0 +1,66 @@
+{% extends "courses/base.html" %}
+{% block title %}Mes demandes — Géomanager{% endblock %}
+
+{% block content %}
+<nav class="mb-6 text-sm text-stone-400 flex items-center gap-1.5">
+    <a href="{% url 'courses:dashboard' %}" class="hover:text-amber-600 transition">Dashboard</a>
+    <span>›</span>
+    <span class="text-slate-700 font-medium">Mes demandes</span>
+</nav>
+
+<div class="max-w-3xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-extrabold text-slate-800">Mes demandes de formation</h1>
+        <a href="{% url 'courses:demander_formation' %}"
+           class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold transition">
+            + Nouvelle demande
+        </a>
+    </div>
+
+    {% if demandes %}
+        <div class="space-y-4">
+            {% for d in demandes %}
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-5">
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800">{{ d.titre }}</h2>
+                        {% if d.formation_existante %}
+                            <p class="text-xs text-stone-400 mt-0.5">Concerne : {{ d.formation_existante.titre }}</p>
+                        {% endif %}
+                    </div>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+                        {% if d.statut == 'en_attente' %}bg-amber-100 text-amber-700
+                        {% elif d.statut == 'vue' %}bg-blue-100 text-blue-700
+                        {% elif d.statut == 'acceptee' %}bg-emerald-100 text-emerald-700
+                        {% elif d.statut == 'refusee' %}bg-red-100 text-red-700
+                        {% endif %}">
+                        {{ d.get_statut_display }}
+                    </span>
+                </div>
+
+                {% if d.description %}
+                    <p class="text-sm text-stone-500 mb-3">{{ d.description }}</p>
+                {% endif %}
+
+                {% if d.reponse_formateur %}
+                    <div class="bg-stone-50 rounded-xl p-3 mt-2">
+                        <p class="text-xs font-semibold text-stone-500 mb-1">Réponse du formateur :</p>
+                        <p class="text-sm text-slate-700">{{ d.reponse_formateur }}</p>
+                    </div>
+                {% endif %}
+
+                <p class="text-xs text-stone-400 mt-3">Envoyée le {{ d.date_creation|date:"d/m/Y à H:i" }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-10 text-center">
+            <p class="text-stone-400 mb-4">Vous n'avez aucune demande de formation pour le moment.</p>
+            <a href="{% url 'courses:demander_formation' %}"
+               class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold transition">
+                📨 Faire ma première demande
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

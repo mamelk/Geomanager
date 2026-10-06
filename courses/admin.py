@@ -3,7 +3,8 @@ from .models import (
     Formation, Module, Lecon, Examen, Question, OptionReponse,
     TentativeExamen, Inscription, ProgressionLecon,
     VideoLecon, RessourceComplementaire, Commentaire,
-    Abonnement, TransactionPaiement,
+    Abonnement, TransactionPaiement, ProlongationAbonnement,
+    ParametrePlateforme,
 )
 
 
@@ -92,3 +93,24 @@ class TransactionPaiementAdmin(admin.ModelAdmin):
     search_fields = ('reference_externe', 'telephone', 'abonnement__utilisateur__username')
     readonly_fields = ('date_creation', 'date_mise_a_jour', 'metadata_reponse')
     list_per_page = 50
+
+
+@admin.register(ProlongationAbonnement)
+class ProlongationAbonnementAdmin(admin.ModelAdmin):
+    list_display = ('abonnement', 'jours_ajoutes', 'motif', 'effectue_par', 'date_prolongation')
+    list_filter = ('jours_ajoutes',)
+    search_fields = ('abonnement__utilisateur__username', 'motif')
+    readonly_fields = ('date_prolongation',)
+
+
+@admin.register(ParametrePlateforme)
+class ParametrePlateformeAdmin(admin.ModelAdmin):
+    list_display = ('monnaie', 'montant_abonnement', 'duree_abonnement_jours')
+    readonly_fields = ('date_modification',)
+
+    def has_add_permission(self, request):
+        # Singleton : empêcher la création multiples
+        return not ParametrePlateforme.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False

@@ -40,8 +40,17 @@ ngrok.exe
 ngrok.zip
 ngrok.log
 
-# Static files (collectés)
+# Static files (collectés par collectstatic, pas dans le repo)
 staticfiles/
 
-# Migrations (à régénérer)
-# courses/migrations/  # Décommenter si vous voulez les régénérer
+# Fichiers de config hors déploiement
+Procfile
+render.yaml
+geomanager/settings_production.py
+courses/tests.py
+
+# Archives & outils locaux
+geomanager.zip
+skills-lock.json
+.agents/
+.claude/

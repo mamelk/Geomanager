@@ -9,10 +9,10 @@
         <div class="lg:col-span-2 space-y-4">
             <!-- Lecteur vidéo -->
             {% if video %}
-                {% if video.fichier_video %}
+                {% if video.video_file_url %}
                     <div class="relative w-full rounded-2xl overflow-hidden shadow-lg bg-black" style="padding-top: 56.25%;">
                         <video class="absolute inset-0 w-full h-full" controls autoplay
-                               src="{{ video.fichier_video.url }}">
+                               src="{{ video.video_file_url }}">
                             Votre navigateur ne supporte pas la lecture vidéo.
                         </video>
                     </div>
@@ -34,7 +34,7 @@
                         <p class="text-xs text-stone-400">⏱ {{ video.duree_formatee }}</p>
                     </div>
                     <!-- Bouton marquer comme vu -->
-                    {% if video.fichier_video or video.video_url %}
+                    {% if video.video_file_url or video.video_url %}
                     <a href="{% url 'courses:marquer_video_vue' video.id %}"
                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600
                               text-white font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all">
