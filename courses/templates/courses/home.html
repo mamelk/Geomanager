@@ -64,20 +64,18 @@
                         </svg>
                         <div class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Photo de mine</div>
                     </div>
+                    {# Photo de mine — priorité : Media apprenant > placeholder fixe #}
                     {% if mine_photo %}
                         <img src="{{ mine_photo.url }}" alt="Photo de mine de l'apprenant"
                              class="w-full rounded-xl border border-white/20 object-cover max-h-56">
                     {% else %}
-                        <div class="w-full rounded-xl border-2 border-dashed border-white/20 bg-white/5 flex flex-col items-center justify-center py-8">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-stone-500 mb-2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                            </svg>
-                            <p class="text-xs text-stone-400">Aucune photo de mine pour l'instant</p>
-                            <a href="{% url 'courses:media_photo_upload' %}"
-                               class="mt-2 text-xs font-semibold text-brand-copper hover:text-brand-copper-dark transition">
-                                📷 Prendre une photo &rarr;
-                            </a>
-                        </div>
+                        {# Placeholder statique housé dans le template, pas de dépendance storage #}
+                        <picture>
+                            <source media="(min-width: 1024px)" type="image/jpeg" srcset="/static/img/mine.jpg">
+                            <source media="(min-width: 640px)" type="image/png" srcset="/static/img/mine.png">
+                            <img src="/static/img/mine.png" alt="Photo de mine (illustration)"
+                                 class="w-full rounded-xl border border-white/20 object-cover max-h-56">
+                        </picture>
                     {% endif %}
                     <div class="mt-4 pt-4 border-t border-white/10 text-center">
                         <p class="text-xs text-stone-400">
