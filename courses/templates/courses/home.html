@@ -4,13 +4,30 @@
 
 {% block extra_css %}
 <style>
-/* pas de style global pour l'instant */
+.site-hero.max-w-5xl > .hero-mining .relative.z-10 > .flex.flex-col.lg\:flex-row > .flex-1.text-center.lg\:text-left > h1::after {
+  display: none;
+}
+.site-hero .hero-mining .relative.z-10 > .flex.flex-col.lg\:flex-row {
+  align-items stretch;
+}
+.site-hero .hero-mining {
+  position relative;
+}
+@media (min-width: 1024px) {
+  .site-hero .hero-mining .relative.z-10 > .flex.flex-col.lg\:flex-row {
+    align-items stretch;
+  }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="hero-mining -mx-4 sm:-mx-6 lg:-mx-8 -mt-6 px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative">
-    <div class="relative z-10 max-w-5xl mx-auto">
+<section class="hero-mining -mx-4 sm:-mx-6 lg:-mx-8 -mt-6 px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-brand-copper/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-80 h-80 bg-brand-teal/20 rounded-full blur-3xl"></div>
+    </div>
+    <div class="relative z-10 max-w-5xl mx-auto site-hero">
         <div class="flex flex-col lg:flex-row items-center gap-12">
 
             <!-- Texte -->
@@ -27,26 +44,39 @@
                 <p class="mt-6 text-lg text-stone-300 max-w-xl leading-relaxed">
                     Formations certifiantes réunissant géologie, sécurité minière, exploitation et traitement du minerai.
                     Développées par des experts du secteur minier africain.
-                </p>
+                </p>                <div class="mt-2 flex items-center gap-2 text-sm text-stone-400">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-copper opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-copper"></span>
+                    </span>
+                    <span>Avec certification à l'issue de chaque formation</span>
+                </div>
 
                 <div class="mt-8 flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4">
                     <a href="{% url 'courses:liste_formations' %}"
-                       class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
+                       class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
                               bg-brand-copper hover:bg-brand-copper-dark text-white font-bold text-lg shadow-lg
-                              shadow-brand-copper/25 transition-all duration-200">
-                        Explorer les formations &rarr;
-                    </a>
-                    <a href="{% url 'courses:register' %}"
-                       class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
+                              shadow-brand-copper/25 transition-all duration-200 overflow-hidden">
+                        <span class="relative z-10">Explorer les formations</span>
+                        <svg class="relative z-0 inline-block w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                        <span class="absolute inset-0 -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out" aria-hidden="true">Explorer les formations</span>
+                    </a>                    <a href="{% url 'courses:register' %}"
+                       class="group relative overflow-hidden w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
                               bg-white/10 hover:bg-white/20 text-white font-semibold border border-white/20 transition-all">
-                        Créer un compte
+                        <span class="relative z-10">Créer un compte</span>
+                        <svg class="relative z-0 inline-block w-5 h-5 transition-transform duration-200 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                        </svg>
+                        <span class="absolute inset-0 -translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" aria-hidden="true">Créer un compte</span>
                     </a>
                 </div>
             </div>
 
             <!-- Photo réelle de mine (Media model) -->
             <div class="flex-shrink-0 w-full lg:w-auto">
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 max-w-sm lg:max-w-none mx-auto lg:mx-0">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 max-w-sm mx-auto">
                     <div class="flex items-center gap-3 mb-4">
                         <svg width="32" height="26" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" class="h-8">
                             <defs>
@@ -74,21 +104,27 @@
                             <source media="(min-width: 1024px)" type="image/jpeg" srcset="/static/img/mine.jpg">
                             <source media="(min-width: 640px)" type="image/png" srcset="/static/img/mine.png">
                             <img src="/static/img/mine.png" alt="Photo de mine (illustration)"
-                                 class="w-full rounded-xl border border-white/20 object-cover max-h-56">
+                                 class="w-full rounded-xl border border-white/20 object-cover max-h-56 shadow-lg">
                         </picture>
-                        {# Vérification intégrée : si Vercel n'a pas collecté le placeholder statique,
-                            remplacer le src par l'URL absolue du déploiement actif. #}
+                        {# Fallback côté client : a cosmétique uniquement. #}
                         <script>
                             (function(){
-                                var img=document.querySelector('picture img[alt="Photo de mine (illustration)"]');
-                                if(!img) return;
-                                var host=window.location.origin;
-                                var url=host+'/static/img/mine.png';
-                                img.src=url;
-                                ['jpeg','jpg','png'].forEach(function(ext){
-                                    var src=document.querySelector('source[srcset="'+host+'/static/img/mine.'+ext+'"]');
-                                    if(src) src.srcset=host+'/static/img/mine.'+ext;
-                                });
+                                try {
+                                    var img=document.querySelector('picture img[alt="Photo de mine (illustration)"]');
+                                    if(!img) return;
+                                    var host=window.location.origin;
+                                    var url=host+'/static/img/mine.png';
+                                    img.src=url;
+                                    ['jpeg','jpg','png'].forEach(function(ext){
+                                        var src=document.querySelector('source[srcset="'+host+'/static/img/mine.'+ext+'"]');
+                                        if(src) src.srcset=host+'/static/img/mine.'+ext;
+                                    });
+                                } catch(e) {
+                                    // Vercel edge runtime: if querySelector is unavailable, log and bail out.
+                                    // The placeholder <picture> markup is still shipped; if the static
+                                    // asset is reachable later, the browser will use it.
+                                    if(typeof console !== 'undefined') console.warn('geo-home photo placeholder skip', e && e.message);
+                                }
                             })();
                         </script>
                     {% endif %}
