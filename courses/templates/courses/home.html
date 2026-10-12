@@ -76,6 +76,21 @@
                             <img src="/static/img/mine.png" alt="Photo de mine (illustration)"
                                  class="w-full rounded-xl border border-white/20 object-cover max-h-56">
                         </picture>
+                        {# Vérification intégrée : si Vercel n'a pas collecté le placeholder statique,
+                            remplacer le src par l'URL absolue du déploiement actif. #}
+                        <script>
+                            (function(){
+                                var img=document.querySelector('picture img[alt="Photo de mine (illustration)"]');
+                                if(!img) return;
+                                var host=window.location.origin;
+                                var url=host+'/static/img/mine.png';
+                                img.src=url;
+                                ['jpeg','jpg','png'].forEach(function(ext){
+                                    var src=document.querySelector('source[srcset="'+host+'/static/img/mine.'+ext+'"]');
+                                    if(src) src.srcset=host+'/static/img/mine.'+ext;
+                                });
+                            })();
+                        </script>
                     {% endif %}
                     <div class="mt-4 pt-4 border-t border-white/10 text-center">
                         <p class="text-xs text-stone-400">
