@@ -24,8 +24,8 @@
 {% block content %}
 <section class="hero-mining -mx-4 sm:-mx-6 lg:-mx-8 -mt-6 px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative overflow-hidden">
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div class="absolute top-0 right-0 w-96 h-96 bg-brand-copper/10 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 w-80 h-80 bg-brand-teal/20 rounded-full blur-3xl"></div>
+        <div class="absolute top-0 right-0 w-96 h-96 bg-brand-copper/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-80 h-80 bg-brand-teal/30 rounded-full blur-3xl"></div>
     </div>
     <div class="relative z-10 max-w-5xl mx-auto site-hero">
         <div class="flex flex-col lg:flex-row items-center gap-12">
@@ -46,7 +46,7 @@
                     Développées par des experts du secteur minier africain.
                 </p>                <div class="mt-2 flex items-center gap-2 text-sm text-stone-400">
                     <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-copper opacity-75"></span>
+                        <span class="animate-ping bg-brand-copper opacity-90"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-copper"></span>
                     </span>
                     <span>Avec certification à l'issue de chaque formation</span>
@@ -58,18 +58,12 @@
                               bg-brand-copper hover:bg-brand-copper-dark text-white font-bold text-lg shadow-lg
                               shadow-brand-copper/25 transition-all duration-200 overflow-hidden">
                         <span class="relative z-10">Explorer les formations</span>
-                        <svg class="relative z-0 inline-block w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                        </svg>
-                        <span class="absolute inset-0 -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out" aria-hidden="true">Explorer les formations</span>
+                        <svg class="inline-block w-4 h-4 -ml-1 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                     </a>                    <a href="{% url 'courses:register' %}"
                        class="group relative overflow-hidden w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
                               bg-white/10 hover:bg-white/20 text-white font-semibold border border-white/20 transition-all">
                         <span class="relative z-10">Créer un compte</span>
-                        <svg class="relative z-0 inline-block w-5 h-5 transition-transform duration-200 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                        </svg>
-                        <span class="absolute inset-0 -translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" aria-hidden="true">Créer un compte</span>
+                        <svg class="inline-block w-4 h-4 -ml-1 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                     </a>
                 </div>
             </div>
@@ -129,8 +123,8 @@
                         </script>
                     {% endif %}
                     <div class="mt-4 pt-4 border-t border-white/10 text-center">
-                        <p class="text-xs text-stone-400">
-                            {% if mine_photo %}
+                    <p class="text-xs text-stone-400">
+                        {% if mine_photo %}
                                 Votre photo de mine mise à jour le {{ mine_photo.date_ajout|date:"d/m/Y" }}
                                 <a href="{% url 'courses:media_photo_upload' %}" class="hover:text-brand-copper-dark font-medium">La modifier &rarr;</a>
                             {% else %}
