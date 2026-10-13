@@ -64,44 +64,48 @@
 
             <!-- photo de mine -->
             <div class="flex-shrink-0 w-full lg:w-auto">
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 max-w-sm mx-auto">
-                    <div class="flex items-center gap-2 mb-4">
-                        <svg width="32" height="26" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" class="h-8">
-                            <defs>
-                                <linearGradient id="home-gradG" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#2a5e78;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#1a3a4a;stop-opacity:1" />
-                                </linearGradient>
-                                <linearGradient id="home-gradM" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#c88e6e;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#9e5e3e;stop-opacity:1" />
-                                </linearGradient>
+                {% if mine_photo %}
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 max-w-sm mx-auto">
+                        <div class="flex items-center gap-2 mb-4">
+                            <svg width="32" height="26" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" class="h-8">
+                                <defs>
+                                    <linearGradient id="home-gradG" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#2a5e78;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#1a3a4a;stop-opacity:1" />
+                                    </linearGradient>
+                                    <linearGradient id="home-gradM" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#c88e6e;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#9e5e3e;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="M30 12 L30 52 L48 52 L48 42 L38 42 L38 48 L34 48 L34 16 L48 16 L48 24 L44 24 L44 28 L52 28 L52 12 Z" fill="url(#home-gradG)" />
+                                <path d="M58 12 L58 52 L62 52 L62 22 L70 38 L78 22 L78 52 L82 52 L82 12 L74 12 L70 32 L66 12 Z" fill="url(#home-gradM)" />
                             </defs>
-                            <path d="M30 12 L30 52 L48 52 L48 42 L38 42 L38 48 L34 48 L34 16 L48 16 L48 24 L44 24 L44 28 L52 28 L52 12 Z" fill="url(#home-gradG)" />
-                            <path d="M58 12 L58 52 L62 52 L62 22 L70 38 L78 22 L78 52 L82 52 L82 12 L74 12 L70 32 L66 12 Z" fill="url(#home-gradM)" />
                         </svg>
                         <div class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Photo de mine</div>
                     </div>
-
-                    {% if mine_photo %}
-                        <img src="{{ mine_photo.url }}" alt="Photo de mine"
-                             class="w-full rounded-xl border border-white/20 object-cover max-h-52 shadow-md">
-                    {% else %}
-                        <img src="{% static 'img/mine.png' %}" alt="Photo de mine (illustration)"
-                             class="w-full rounded-xl border border-white/20 object-cover max-h-52 shadow-md">
-                    {% endif %}
-
+                    <img src="{{ mine_photo.url }}" alt="Photo de mine"
+                         class="w-full rounded-xl border border-white/20 object-cover max-h-52 shadow-md">
                     <div class="mt-4 pt-4 border-t border-white/10 text-center">
                         <p class="text-xs text-stone-400">
-                            {% if mine_photo %}
-                                Votre photo de mine · mise à jour le {{ mine_photo.date_ajout|date:"d/m/Y" }}
-                                <a href="{% url 'courses:media_photo_upload' %}" class="ml-1 hover:text-brand-copper-dark font-medium">Modifier →</a>
-                            {% else %}
-                                Photo de mine requise pour valider une formation
-                            {% endif %}
+                            Votre photo de mine · mise à jour le {{ mine_photo.date_ajout|date:"d/m/Y" }}
+                            <a href="{% url 'courses:media_photo_upload' %}" class="ml-1 hover:text-brand-copper-dark font-medium">Modifier →</a>
                         </p>
                     </div>
-                </div>
+                {% else %}
+                    <div class="relative rounded-2xl overflow-hidden border border-white/20 shadow-xl max-w-sm mx-auto">
+                        <picture>
+                        <source srcset="{% static 'img/mine-hero.webp' %}" type="image/webp">
+                        <img src="{% static 'img/mine-hero.jpg' %}" alt="Excavatrice à godets dans une mine à ciel ouvert"
+                             class="w-full h-auto object-cover max-h-80" loading="lazy">
+                    </picture>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-white/10 text-center">
+                        <p class="text-xs text-stone-400">
+                            Photo de mine requise pour valider une formation
+                        </p>
+                    </div>
+                {% endif %}
             </div>
 
         </div>
