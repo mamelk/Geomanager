@@ -1,79 +1,71 @@
 {% extends "courses/base.html" %}
 
-{% block title %}Géomanager — Plateforme de Formation Minière & Exploration{% endblock %}
-
-{% block extra_css %}
-<style>
-.site-hero.max-w-5xl > .hero-mining .relative.z-10 > .flex.flex-col.lg\:flex-row > .flex-1.text-center.lg\:text-left > h1::after {
-  display: none;
-}
-.site-hero .hero-mining .relative.z-10 > .flex.flex-col.lg\:flex-row {
-  align-items stretch;
-}
-.site-hero .hero-mining {
-  position relative;
-}
-@media (min-width: 1024px) {
-  .site-hero .hero-mining .relative.z-10 > .flex.flex-col.lg\:flex-row {
-    align-items stretch;
-  }
-}
-</style>
-{% endblock %}
+{% block title %}Géomanager — Formation minière & exploration{% endblock %}
 
 {% block content %}
-<section class="hero-mining -mx-4 sm:-mx-6 lg:-mx-8 -mt-6 px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative overflow-hidden">
+<!-- ══════════════ HERO ══════════════ -->
+<section class="relative overflow-hidden bg-brand-teal pt-16 sm:pt-20 pb-16 sm:pb-24">
+    <!-- décor : deux belles halos -->
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div class="absolute top-0 right-0 w-96 h-96 bg-brand-copper/20 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 w-80 h-80 bg-brand-teal/30 rounded-full blur-3xl"></div>
+        <div class="absolute top-0 right-0 w-80 h-80 bg-brand-copper/25 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-72 h-72 bg-brand-teal-light/25 rounded-full blur-3xl"></div>
     </div>
-    <div class="relative z-10 max-w-5xl mx-auto site-hero">
-        <div class="flex flex-col lg:flex-row items-center gap-12">
 
-            <!-- Texte -->
+    <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+
+            <!-- texte -->
             <div class="flex-1 text-center lg:text-left">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-copper/10 border border-brand-copper/20 mb-6">
                     <span class="w-2 h-2 rounded-full bg-brand-copper animate-pulse"></span>
-                    <span class="text-brand-copper text-sm font-medium">Expert en exploration et géologie minière</span>
+                    <span class="text-brand-copper text-sm font-medium tracking-wide">Expert en exploration et géologie minière</span>
                 </div>
 
-                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight tracking-tight">
+                    Géomanager
+                </h1>
+                <p class="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-brand-copper leading-tight tracking-tight">
                     Expert en exploration et géologie minière
                 </h1>
 
                 <p class="mt-6 text-lg text-stone-300 max-w-xl leading-relaxed">
                     Formations certifiantes réunissant géologie, sécurité minière, exploitation et traitement du minerai.
                     Développées par des experts du secteur minier africain.
-                </p>                <div class="mt-2 flex items-center gap-2 text-sm text-stone-400">
+                </p>
+
+                <div class="mt-3 flex items-center gap-2 text-sm text-stone-400">
                     <span class="relative flex h-2 w-2">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-copper opacity-95"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-copper"></span>
                     </span>
-                    <span>Avec certification à l'issue de chaque formation</span>
+                    <span class="text-stone-300">Avec certification à l'issue de chaque formation</span>
                 </div>
 
-                <div class="mt-8 flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4">
+                <div class="mt-8 flex flex-col sm:flex-row items-center gap-4">
                     <a href="{% url 'courses:liste_formations' %}"
                        class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
                               bg-brand-copper hover:bg-brand-copper-dark text-white font-bold text-lg shadow-lg
-                              shadow-brand-copper/25 transition-all duration-200 overflow-hidden">
+                              shadow-brand-copper/25 transition-all duration-200">
                         <span class="relative z-10">Explorer les formations</span>
-                        
-                        <svg class="inline-block w-4 h-4 -ml-1 text-white/95" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                    </a>                    <a href="{% url 'courses:register' %}"
-                       class="group relative overflow-hidden w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
+                        <svg class="relative z-0 inline-block w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </a>
+                    <a href="{% url 'courses:register' %}"
+                       class="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
                               bg-white/10 hover:bg-white/20 text-white font-semibold border border-white/20 transition-all">
                         <span class="relative z-10">Créer un compte</span>
-                        
-                        <svg class="inline-block w-4 h-4 -ml-1 text-white/95" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                        <svg class="relative z-0 inline-block w-5 h-5 transition-transform duration-200 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                        </svg>
                     </a>
                 </div>
             </div>
 
-            <!-- Photo réelle de mine (Media model) -->
+            <!-- photo de mine -->
             <div class="flex-shrink-0 w-full lg:w-auto">
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 max-w-sm mx-auto">
-                    <div class="flex items-center gap-3 mb-4">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 max-w-sm mx-auto">
+                    <div class="flex items-center gap-2 mb-4">
                         <svg width="32" height="26" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" class="h-8">
                             <defs>
                                 <linearGradient id="home-gradG" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -90,56 +82,32 @@
                         </svg>
                         <div class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Photo de mine</div>
                     </div>
-                    {# Photo de mine — priorité : Media apprenant > placeholder fixe #}
+
                     {% if mine_photo %}
-                        <img src="{{ mine_photo.url }}" alt="Photo de mine de l'apprenant"
-                             class="w-full rounded-xl border border-white/20 object-cover max-h-56">
+                        <img src="{{ mine_photo.url }}" alt="Photo de mine"
+                             class="w-full rounded-xl border border-white/20 object-cover max-h-52 shadow-md">
                     {% else %}
-                        {# Placeholder statique housé dans le template, pas de dépendance storage #}
-                        <picture>
-                            <source media="(min-width: 1024px)" type="image/jpeg" srcset="/static/img/mine.jpg">
-                            <source media="(min-width: 640px)" type="image/png" srcset="/static/img/mine.png">
-                            <img src="/static/img/mine.png" alt="Photo de mine (illustration)"
-                                 class="w-full rounded-xl border border-white/20 object-cover max-h-56 shadow-lg">
-                        </picture>
-                        {# Fallback côté client : a cosmétique uniquement. #}
-                        <script>
-                            (function(){
-                                try {
-                                    var img=document.querySelector('picture img[alt="Photo de mine (illustration)"]');
-                                    if(!img) return;
-                                    var host=window.location.origin;
-                                    var url=host+'/static/img/mine.png';
-                                    img.src=url;
-                                    ['jpeg','jpg','png'].forEach(function(ext){
-                                        var src=document.querySelector('source[srcset="'+host+'/static/img/mine.'+ext+'"]');
-                                        if(src) src.srcset=host+'/static/img/mine.'+ext;
-                                    });
-                                } catch(e) {
-                                    // Vercel edge runtime: if querySelector is unavailable, log and bail out.
-                                    // The placeholder <picture> markup is still shipped; if the static
-                                    // asset is reachable later, the browser will use it.
-                                    if(typeof console !== 'undefined') console.warn('geo-home photo placeholder skip', e && e.message);
-                                }
-                            })();
-                        </script>
+                        <img src="{% static 'img/mine.png' %}" alt="Photo de mine (illustration)"
+                             class="w-full rounded-xl border border-white/20 object-cover max-h-52 shadow-md">
                     {% endif %}
+
                     <div class="mt-4 pt-4 border-t border-white/10 text-center">
-                    <p class="text-xs text-stone-400">
-                        {% if mine_photo %}
-                                Votre photo de mine mise à jour le {{ mine_photo.date_ajout|date:"d/m/Y" }}
-                                <a href="{% url 'courses:media_photo_upload' %}" class="hover:text-brand-copper-dark font-medium">La modifier &rarr;</a>
+                        <p class="text-xs text-stone-400">
+                            {% if mine_photo %}
+                                Votre photo de mine · mise à jour le {{ mine_photo.date_ajout|date:"d/m/Y" }}
+                                <a href="{% url 'courses:media_photo_upload' %}" class="ml-1 hover:text-brand-copper-dark font-medium">Modifier →</a>
                             {% else %}
-                                <span class="text-stone-400">Photo de mine requise pour valider une formation</span>
+                                Photo de mine requise pour valider une formation
                             {% endif %}
                         </p>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
-    <!-- Vague décorative -->
+    <!-- vague bas -->
     <div class="absolute bottom-0 left-0 right-0">
         <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full">
             <path d="M0 60L60 52C120 44 240 28 360 22C480 16 600 20 720 26C840 32 960 40 1080 38C1200 36 1320 24 1380 18L1440 12V60H0Z"
@@ -148,173 +116,176 @@
     </div>
 </section>
 
-<!-- ═══════════ STATISTIQUES ═══════════ -->
+<!-- ══════════════ STATISTIQUES ══════════════ -->
 <section class="py-12">
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {% for stat in stats %}
-        <div class="bg-white rounded-2xl p-5 sm:p-6 text-center shadow-sm border border-stone-100 hover:shadow-md transition-shadow">
-            <div class="w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-3
-                        {% if stat.color == 'teal' %}bg-brand-teal/10 text-brand-teal
-                        {% elif stat.color == 'copper' %}bg-brand-copper/10 text-brand-copper
-                        {% elif stat.color == 'slate' %}bg-slate-100 text-slate-600
-                        {% else %}bg-emerald-100 text-emerald-600{% endif %}">
-                {{ stat.icon_html|safe }}
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {% for stat in stats %}
+            <div class="bg-white rounded-2xl p-5 sm:p-6 text-center shadow-sm border border-stone-100 hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-3
+                            {% if stat.color == 'teal' %}bg-brand-teal/10 text-brand-teal
+                            {% elif stat.color == 'copper' %}bg-brand-copper/10 text-brand-copper
+                            {% elif stat.color == 'slate' %}bg-slate-100 text-slate-600
+                            {% else %}bg-emerald-100 text-emerald-600{% endif %}">
+                    {{ stat.icon_html|safe }}
+                </div>
+                <div class="text-2xl sm:text-3xl font-extrabold text-slate-800">{{ stat.valeur }}</div>
+                <div class="text-sm text-stone-500 mt-1">{{ stat.label }}</div>
             </div>
-            <div class="text-2xl sm:text-3xl font-extrabold text-slate-800">{{ stat.valeur }}</div>
-            <div class="text-sm text-stone-500 mt-1">{{ stat.label }}</div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 </section>
 
-<!-- ═══════════ FORMATIONS — DÉCOUVRIR ═══════════ -->
+<!-- ══════════════ FORMATIONS ══════════════ -->
 {% if formations_recentes %}
 <section class="py-12">
-    <div class="flex items-center justify-between mb-8">
-        <div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Nos formations certifiantes</h2>
-            <p class="mt-1 text-stone-500">Programmes conçus pour les professionnels du secteur minier</p>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Nos formations certifiantes</h2>
+                <p class="mt-1 text-stone-500">Programmes conçus pour les professionnels du secteur minier</p>
+            </div>
+            <a href="{% url 'courses:liste_formations' %}" class="hidden sm:inline-flex items-center gap-1 text-brand-copper hover:text-brand-copper-dark font-semibold text-sm transition">
+                Voir toutes →
+            </a>
         </div>
-        <a href="{% url 'courses:liste_formations' %}" class="hidden sm:inline-flex items-center gap-1 text-brand-copper hover:text-brand-copper-dark font-semibold text-sm transition">
-            Voir toutes →
-        </a>
-    </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {% for f in formations_recentes %}
-        <a href="{% url 'courses:formation_detail' f.id %}"
-           class="card-formation block bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden
-                  hover:shadow-lg transition-all duration-300 group">
-            <!-- Header coloré par domaine -->
-            <div class="px-5 py-4
-                {% if f.domaine == 'geologie' %}bg-gradient-to-r from-brand-teal to-brand-teal-light
-                {% elif f.domaine == 'securite' %}bg-gradient-to-r from-red-500 to-red-600
-                {% elif f.domaine == 'exploitation' %}bg-gradient-to-r from-emerald-500 to-emerald-600
-                {% elif f.domaine == 'traitement' %}bg-gradient-to-r from-brand-copper to-brand-copper-dark
-                {% else %}bg-gradient-to-r from-slate-600 to-slate-700{% endif %}">
-                <div class="flex items-center justify-between">
-                    <span class="text-white/80 text-xs font-semibold uppercase tracking-wide">
-                        {{ f.get_domaine_display }}
-                    </span>
-                    <span class="text-white text-xs font-bold bg-white/20 px-2 py-0.5 rounded-full">
-                        {{ f.nb_vid }} vidéos
-                    </span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {% for f in formations_recentes %}
+            <a href="{% url 'courses:formation_detail' f.id %}"
+               class="card-formation block bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden
+                      hover:shadow-lg transition-all duration-300 group">
+                <div class="px-5 py-4
+                    {% if f.domaine == 'geologie' %}bg-gradient-to-r from-brand-teal to-brand-teal-light
+                    {% elif f.domaine == 'securite' %}bg-gradient-to-r from-red-500 to-red-600
+                    {% elif f.domaine == 'exploitation' %}bg-gradient-to-r from-emerald-500 to-emerald-600
+                    {% elif f.domaine == 'traitement' %}bg-gradient-to-r from-brand-copper to-brand-copper-dark
+                    {% else %}bg-gradient-to-r from-slate-600 to-slate-700{% endif %}">
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80 text-xs font-semibold uppercase tracking-wide">{{ f.get_domaine_display }}</span>
+                        <span class="text-white text-xs font-bold bg-white/20 px-2 py-0.5 rounded-full">{{ f.nb_vid }} vidéos</span>
+                    </div>
                 </div>
-            </div>
-            <!-- Corps -->
-            <div class="p-5">
-                <h3 class="font-bold text-slate-800 group-hover:text-brand-teal transition">{{ f.titre }}</h3>
-                <p class="text-sm text-stone-400 mt-2 line-clamp-2">{{ f.description|truncatewords:20 }}</p>
-                <div class="flex items-center gap-3 mt-4 text-xs text-stone-400">
-                    {% if f.duree_totale_secondes > 0 %}
-                    <span class="flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        {{ f.duree_totale_formatee }}
-                    </span>
-                    {% endif %}
-                    <span>•</span>
-                    <span>Seuil : {{ f.seuil_certification }}%</span>
+                <div class="p-5">
+                    <h3 class="font-bold text-slate-800 group-hover:text-brand-teal transition">{{ f.titre }}</h3>
+                    <p class="text-sm text-stone-400 mt-2 line-clamp-2">{{ f.description|truncatewords:20 }}</p>
+                    <div class="flex items-center gap-3 mt-4 text-xs text-stone-400">
+                        {% if f.duree_totale_secondes > 0 %}
+                        <span class="flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ f.duree_totale_formatee }}
+                        </span>
+                        {% endif %}
+                        <span>•</span>
+                        <span>Seuil : {{ f.seuil_certification }}%</span>
+                    </div>
+                    <div class="mt-4">
+                        <span class="inline-flex items-center gap-1 text-brand-copper font-semibold text-sm group-hover:gap-2 transition-all">
+                            Découvrir →
+                        </span>
+                    </div>
                 </div>
-                <div class="mt-4">
-                    <span class="inline-flex items-center gap-1 text-brand-copper font-semibold text-sm group-hover:gap-2 transition-all">
-                        Découvrir →
-                    </span>
-                </div>
-            </div>
-        </a>
-        {% endfor %}
-    </div>
+            </a>
+            {% endfor %}
+        </div>
 
-    <div class="mt-6 text-center sm:hidden">
-        <a href="{% url 'courses:liste_formations' %}" class="text-brand-copper hover:text-brand-copper-dark font-semibold text-sm">
-            Voir toutes les formations →
-        </a>
+        <div class="mt-6 text-center sm:hidden">
+            <a href="{% url 'courses:liste_formations' %}" class="text-brand-copper hover:text-brand-copper-dark font-semibold text-sm">
+                Voir toutes les formations →
+            </a>
+        </div>
     </div>
 </section>
 {% endif %}
 
-<!-- ═══════════ DOMAINES D'EXPERTISE ═══════════ -->
+<!-- ══════════════ DOMAINES ══════════════ -->
 {% if domaines %}
 <section class="py-12">
-    <div class="text-center mb-10">
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Domaines d'expertise</h2>
-        <p class="mt-2 text-stone-500">Spécialisations couvrant l'ensemble de la chaîne minière</p>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {% for d in domaines %}
-        <div class="card-domain bg-white rounded-2xl p-6 shadow-sm border border-stone-100 hover:shadow-lg transition-all duration-300">
-            <div class="flex items-center gap-4 mb-3">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center
-                    {% if d.code == 'geologie' %}bg-brand-teal/10 text-brand-teal
-                    {% elif d.code == 'securite' %}bg-red-50 text-red-600
-                    {% elif d.code == 'exploitation' %}bg-emerald-50 text-emerald-600
-                    {% elif d.code == 'traitement' %}bg-brand-copper/10 text-brand-copper
-                    {% elif d.code == 'topographie' %}bg-blue-50 text-blue-600
-                    {% else %}bg-stone-100 text-stone-600{% endif %}">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                    </svg>
-                </div>
-                <div>
-                    <h3 class="font-bold text-slate-800">{{ d.label }}</h3>
-                    <p class="text-sm text-stone-400">{{ d.count }} formation{{ d.count|pluralize }}</p>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-10">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Domaines d'expertise</h2>
+            <p class="mt-2 text-stone-500">Spécialisations couvrant l'ensemble de la chaîne minière</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {% for d in domaines %}
+            <div class="card-domain bg-white rounded-2xl p-6 shadow-sm border border-stone-100 hover:shadow-lg transition-all duration-300">
+                <div class="flex items-center gap-4 mb-3">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center
+                        {% if d.code == 'geologie' %}bg-brand-teal/10 text-brand-teal
+                        {% elif d.code == 'securite' %}bg-red-50 text-red-600
+                        {% elif d.code == 'exploitation' %}bg-emerald-50 text-emerald-600
+                        {% elif d.code == 'traitement' %}bg-brand-copper/10 text-brand-copper
+                        {% elif d.code == 'topographie' %}bg-blue-50 text-blue-600
+                        {% else %}bg-stone-100 text-stone-600{% endif %}">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800">{{ d.label }}</h3>
+                        <p class="text-sm text-stone-400">{{ d.count }} formation{{ d.count|pluralize }}</p>
+                    </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 </section>
 {% endif %}
 
-<!-- ═══════════ VÉRIFICATION CERTIFICAT ═══════════ -->
+<!-- ══════════════ VÉRIFICATION CERTIFICAT ══════════════ -->
 <section class="py-12">
-    <div class="bg-brand-teal rounded-3xl p-8 sm:p-12 text-center">
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-2">Vérifier l'authenticité d'un certificat</h2>
-        <p class="text-stone-300 mb-6 max-w-lg mx-auto">
-            Saisissez le numéro unique (format GEO-AAAA-XXXX) inscrit sur le document pour confirmer sa validité.
-        </p>
-        <form action="{% url 'courses:verifier_certificat' %}" method="GET" class="max-w-md mx-auto flex flex-col sm:flex-row gap-2">
-            <input type="text" name="numero" placeholder="GEO-2026-XXXX" required
-                   class="flex-1 min-w-0 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white
-                          focus:outline-none focus:border-brand-copper font-mono tracking-wide
-                          placeholder:text-stone-400">
-            <button type="submit"
-                    class="shrink-0 bg-brand-copper hover:bg-brand-copper-dark text-white font-bold px-6 py-3 rounded-xl transition-all">
-                Vérifier
-            </button>
-        </form>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-brand-teal rounded-3xl p-8 sm:p-12 text-center">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-2">Vérifier l'authenticité d'un certificat</h2>
+            <p class="text-stone-300 mb-6 max-w-lg mx-auto">
+                Saisissez le numéro unique (format GEO-AAAA-XXXX) inscrit sur le document pour confirmer sa validité.
+            </p>
+            <form action="{% url 'courses:verifier_certificat' %}" method="GET" class="max-w-md mx-auto flex flex-col sm:flex-row gap-2">
+                <input type="text" name="numero" placeholder="GEO-2026-XXXX" required
+                       class="flex-1 min-w-0 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white
+                              focus:outline-none focus:border-brand-copper font-mono tracking-wide
+                              placeholder:text-stone-400">
+                <button type="submit"
+                        class="shrink-0 bg-brand-copper hover:bg-brand-copper-dark text-white font-bold px-6 py-3 rounded-xl transition-all">
+                    Vérifier
+                </button>
+            </form>
+        </div>
     </div>
 </section>
 
-<!-- ═══════════ CTA ═══════════ -->
+<!-- ══════════════ CTA FINAL ══════════════ -->
 <section class="py-12">
-    <div class="relative bg-gradient-to-r from-brand-teal via-brand-teal-light to-brand-teal rounded-3xl
-                p-8 sm:p-12 overflow-hidden">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-brand-copper/20 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 w-48 h-48 bg-brand-copper/20 rounded-full blur-3xl"></div>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="relative bg-gradient-to-r from-brand-teal via-brand-teal-light to-brand-teal rounded-3xl
+                    p-8 sm:p-12 overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-brand-copper/20 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-48 h-48 bg-brand-copper/20 rounded-full blur-3xl"></div>
 
-        <div class="relative z-10 text-center max-w-2xl mx-auto">
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
-                Rejoignez les professionnels miniers
-            </h2>
-            <p class="mt-4 text-stone-300 text-lg">
-                Obtenez vos certifications en géologie, sécurité et exploitation minière.
-                Développé par <span class="text-brand-copper font-semibold">Géomanager</span>.
-            </p>
-            <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="{% url 'courses:register' %}"
-                   class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
-                          bg-brand-copper hover:bg-brand-copper-dark text-white font-bold text-lg shadow-lg
-                          shadow-brand-copper/25 transition-all">
-                    Commencer maintenant
-                </a>
-                <a href="{% url 'courses:liste_formations' %}"
-                   class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
-                          bg-white/10 hover:bg-white/20 text-white font-semibold border border-white/20 transition-all">
-                    Explorer les formations
-                </a>
+            <div class="relative z-10 text-center max-w-2xl mx-auto">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+                    Rejoignez les professionnels miniers
+                </h2>
+                <p class="mt-4 text-stone-300 text-lg">
+                    Obtenez vos certifications en géologie, sécurité et exploitation minière.
+                    Développé par <span class="text-brand-copper font-semibold">Géomanager</span>.
+                </p>
+                <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="{% url 'courses:register' %}"
+                       class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
+                              bg-brand-copper hover:bg-brand-copper-dark text-white font-bold text-lg shadow-lg
+                              shadow-brand-copper/25 transition-all">
+                        Commencer maintenant
+                    </a>
+                    <a href="{% url 'courses:liste_formations' %}"
+                       class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl
+                              bg-white/10 hover:bg-white/20 text-white font-semibold border border-white/20 transition-all">
+                        Explorer les formations
+                    </a>
+                </div>
             </div>
         </div>
     </div>
