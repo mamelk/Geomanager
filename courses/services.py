@@ -121,7 +121,7 @@ def generer_certificat_pdf(etudiant, formation, tentative):
         # Utiliser BytesIO pour compatibilité serverless (Vercel)
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=landscape(A4))
-        c.setTitle(f"Certificat Géomanager — {titre_formation}")
+        c.setTitle(f"Certificat Geomanager — {titre_formation}")
 
         # ══════════════════════════════════════════════════════════
         # FOND & CADRE
@@ -290,7 +290,7 @@ def generer_certificat_pdf(etudiant, formation, tentative):
         c.drawCentredString(w / 2, footer_y + 14, "GM")
         c.setFillColor(SLATE_500)
         c.setFont("Helvetica", 7)
-        c.drawCentredString(w / 2, footer_y - 5, "Géomanager")
+        c.drawCentredString(w / 2, footer_y - 5, "Geomanager")
         c.setFont("Helvetica-Oblique", 6)
         c.drawCentredString(w / 2, footer_y - 14, "Certifié authentique")
 
@@ -306,7 +306,7 @@ def generer_certificat_pdf(etudiant, formation, tentative):
         c.drawRightString(w - 60, footer_y + 6, FORMATEUR_NOM)
         c.setFillColor(SLATE_500)
         c.setFont("Helvetica-Oblique", 8)
-        c.drawRightString(w - 60, footer_y - 8, "Expert en Ingénierie Minière")
+        c.drawRightString(w - 60, footer_y - 8, "Expert en Exploration et Géologie minière")
 
         # ══════════════════════════════════════════════════════════
         # BANDEAU INFÉRIEUR : DÉVELOPPÉ PAR ESTECH
@@ -315,7 +315,7 @@ def generer_certificat_pdf(etudiant, formation, tentative):
         c.rect(0, 0, w, 30, fill=True, stroke=False)
         c.setFillColor(WHITE)
         c.setFont("Helvetica", 7)
-        c.drawCentredString(w / 2, 11, "Développé par ESTECH  •  www.estech.cd  •  Plateforme Géomanager")
+        c.drawCentredString(w / 2, 11, "Développé par ESTECH  •  www.estech.cd  •  Plateforme Geomanager")
 
         # ══════════════════════════════════════════════════════════
         # FINALISER

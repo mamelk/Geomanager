@@ -49,6 +49,11 @@ urlpatterns = [
     path('certificat/<int:tentative_id>/telecharger/', views.telecharger_certificat, name='telecharger_certificat'),
     path('certificat/<int:tentative_id>/visualiser/', views.visualiser_certificat, name='visualiser_certificat'),
 
+    # ══ COMMANDES DE CERTIFICAT (facultatif, prix à part) ══
+    path('certificat/<int:tentative_id>/commander/', views.commander_certificat, name='commander_certificat'),
+    path('mes-commandes-certificat/', views.mes_commandes_certificat, name='mes_commandes_certificat'),
+    path('commande-certificat/<int:commande_id>/payer/', views.payer_certificat, name='payer_certificat'),
+
     # ══ UPLOAD NOTEUR (photo de mine) — média perso de l'utilisateur ══
     path('media/photo/upload/', views.media_photo_upload, name='media_photo_upload'),
 
@@ -70,6 +75,8 @@ urlpatterns = [
     path('admin-apprenants/<int:user_id>/supprimer/', views.admin_supprimer_apprenant, name='admin_supprimer_apprenant'),
     path('admin-apprenants/<int:user_id>/prolonger/', views.prolonger_abonnement, name='prolonger_abonnement'),
     path('admin-certifications/', views.admin_certifications, name='admin_certifications'),
+    path('admin-commandes-certificat/', views.admin_commandes_certificat, name='admin_commandes_certificat'),
+    path('admin-certificat/<int:tentative_id>/telecharger/', views.admin_telecharger_certificat, name='admin_telecharger_certificat'),
     path('admin-transactions/', views.admin_transactions, name='admin_transactions'),
 
     # ══ DEMANDES DE FORMATION ══

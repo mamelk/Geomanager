@@ -105,7 +105,7 @@ class ProlongationAbonnementAdmin(admin.ModelAdmin):
 
 @admin.register(ParametrePlateforme)
 class ParametrePlateformeAdmin(admin.ModelAdmin):
-    list_display = ('monnaie', 'montant_abonnement', 'duree_abonnement_jours')
+    list_display = ('monnaie', 'montant_abonnement', 'duree_abonnement_jours', 'compte_equity')
     readonly_fields = ('date_modification',)
 
     def has_add_permission(self, request):

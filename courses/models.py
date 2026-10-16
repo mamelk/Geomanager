@@ -363,7 +363,16 @@ class TransactionPaiement(models.Model):
         ('annule', 'Annulé'),
     ]
 
-    abonnement = models.ForeignKey(Abonnement, on_delete=models.CASCADE, related_name='transactions')
+
+    abonnement = models.ForeignKey(
+        Abonnement, on_delete=models.CASCADE, related_name='transactions',
+        null=True, blank=True,
+        help_text='Null si la transaction concerne une commande de certificat',
+    )
+    commande_certificat = models.ForeignKey(
+        'CommandeCertificat', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='transactions',
+    )
     reference_externe = models.CharField(max_length=100, unique=True, help_text='ID transaction MaishaPay')
     montant = models.DecimalField(max_digits=10, decimal_places=2)
     devise = models.CharField(max_length=10, default='CDF')
@@ -387,8 +396,16 @@ class TransactionPaiement(models.Model):
         if reponse:
             self.metadata_reponse = reponse
         self.save(update_fields=['statut', 'metadata_reponse', 'date_mise_a_jour'])
-        # Activer l'abonnement
-        self.abonnement.activer(jours=30)
+        if self.abonnement:
+            # Activer l'abonnement
+            self.abonnement.activer(jours=30)
+        elif self.commande_certificat:
+            # Paiement d'un certificat : la commande passe en "payée" (délivrance manuelle par l'admin)
+            cmd = self.commande_certificat
+            cmd.statut = 'payee'
+            cmd.reference_paiement = self.reference_externe
+            cmd.date_paiement = timezone.now()
+            cmd.save(update_fields=['statut', 'reference_paiement', 'date_paiement'])
 
     def marquer_echoue(self, reponse=None):
         self.statut = 'echoue'
@@ -426,6 +443,14 @@ class ParametrePlateforme(models.Model):
     montant_abonnement = models.DecimalField(
         max_digits=10, decimal_places=2, default=10000,
         help_text='Montant de l\'abonnement mensuel',
+    )
+    prix_certificat = models.DecimalField(
+        max_digits=10, decimal_places=2, default=20000,
+        help_text="Prix de commande d'un certificat (facultatif, prix à part)",
+    )
+    compte_equity = models.CharField(
+        max_length=60, blank=True, default='',
+        help_text="Numéro de compte Equity affiché comme moyen de paiement (virement bancaire)",
     )
     duree_abonnement_jours = models.PositiveIntegerField(default=30)
     date_modification = models.DateTimeField(auto_now=True)
@@ -473,3 +498,52 @@ class DemandeFormation(models.Model):
 
     def __str__(self):
         return f"{self.etudiant.username} demande « {self.titre} » ({self.get_statut_display()})"
+
+
+# ═══════════════════════════════════════
+#  COMMANDES DE CERTIFICAT
+# ═══════════════════════════════════════
+
+class CommandeCertificat(models.Model):
+    """Commande d'un certificat officiel (facultatif, prix à part).
+
+    Le certificat ne se télécharge pas : il est délivré à part par
+    l'administrateur et envoyé par email.
+    """
+    STATUT_CHOICES = [
+        ('en_attente_paiement', 'En attente de paiement'),
+        ('payee', 'Payée'),
+        ('delivree', 'Délivrée'),
+        ('annulee', 'Annulée'),
+    ]
+
+    etudiant = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='commandes_certificat'
+    )
+    tentative = models.ForeignKey(
+        TentativeExamen, on_delete=models.CASCADE, related_name='commandes_certificat',
+        help_text='Tentative certifiée associée (note >= seuil)',
+    )
+    statut = models.CharField(max_length=25, choices=STATUT_CHOICES, default='en_attente_paiement')
+    montant = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    devise = models.CharField(max_length=10, default='CDF')
+    reference_paiement = models.CharField(
+        max_length=100, blank=True, default='', help_text='Référence transaction MaishaPay'
+    )
+    email_livraison = models.EmailField(help_text='Email de réception du certificat')
+    telephone = models.CharField(max_length=20, blank=True, default='')
+    date_commande = models.DateTimeField(auto_now_add=True)
+    date_paiement = models.DateTimeField(blank=True, null=True)
+    date_delivrance = models.DateTimeField(blank=True, null=True)
+    delivre_par = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='certificats_delivres',
+    )
+
+    class Meta:
+        verbose_name = 'Commande de certificat'
+        verbose_name_plural = 'Commandes de certificat'
+        ordering = ['-date_commande']
+
+    def __str__(self):
+        return f"Certificat #{self.id} — {self.etudiant.username} — {self.get_statut_display()}"

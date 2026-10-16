@@ -1,5 +1,5 @@
 {% extends "courses/base.html" %}
-{% block title %}Abonnement — Géomanager{% endblock %}
+{% block title %}Abonnement — Geomanager{% endblock %}
 
 {% block content %}
 <div class="max-w-lg mx-auto">
@@ -13,7 +13,7 @@
             </svg>
         </div>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Abonnement Mensuel</h1>
-        <p class="mt-2 text-stone-500 text-sm">Accédez à toutes les formations certifiantes Géomanager</p>
+        <p class="mt-2 text-stone-500 text-sm">Accédez à toutes les formations certifiantes Geomanager</p>
     </div>
 
     <!-- Statut actuel -->
@@ -176,6 +176,21 @@
             </p>
         </form>
     </div>
+
+    <!-- Virement bancaire — Compte Equity -->
+    {% if compte_equity %}
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 mt-6">
+        <h3 class="font-bold text-slate-800 mb-1">Ou payer par virement — Compte Equity</h3>
+        <p class="text-xs text-stone-500 mb-4">
+            Effectuez le virement de <strong>{{ montant|floatformat:0 }} {{ monnaie }}</strong> sur le compte ci-dessous,
+            puis envoyez le reçu à l'administrateur : votre abonnement sera activé après vérification.
+        </p>
+        <div class="bg-stone-50 rounded-xl p-4 flex items-center justify-between gap-3">
+            <span class="text-sm text-stone-500">Compte Equity</span>
+            <span class="font-mono font-bold text-lg text-brand-teal select-all">{{ compte_equity }}</span>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Lien retour -->
     <div class="mt-6 text-center">

@@ -1,0 +1,36 @@
+# Secrets / config locale — les variables sont définies dans Vercel (env vars)
+.env
+.env.*
+.envrc
+
+# Environnements Python
+.venv/
+venv/
+ENV/
+
+# Données locales non servies en prod (uploads Cloudinary, DB locale)
+media/
+db.sqlite3
+db.sqlite3-journal
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Archives & outils locaux
+*.zip
+get-pip.py
+ngrok.exe
+ngrok.zip
+ngrok.log
+tmp/
+.agents/
+.claude/
+.git/
+.vscode/
+.idea/
+
+# NB : staticfiles/ (sortie de collectstatic) DOIT être téléversé — ne pas l'ignorer.

@@ -73,12 +73,12 @@ def media_photo_upload(request):
         fichier = request.FILES.get('photo')
         if not fichier:
             messages.error(request, 'Aucun fichier sélectionné.')
-            return redirect('courses:media_photo_form')
+            return redirect('courses:media_photo_upload')
 
         # Type autorisé : photo
         if fichier.content_type not in ('image/jpeg', 'image/png', 'image/webp'):
             messages.error(request, 'Format non supporté. Envoyez un JPEG, PNG ou WebP.')
-            return redirect('courses:media_photo_form')
+            return redirect('courses:media_photo_upload')
 
         # 1) Construction du chemin relatif : photo/AAAA/AA/BBBB.jpg
         ext = fichier.name.rsplit('.', 1)[-1].lower()
@@ -88,8 +88,8 @@ def media_photo_upload(request):
         today = timezone.now()
         rel = f"photo/{today.year}/{today.month:02d}/{safe_name}"
 
-        # 2) S'assurer du dossier</li>
-        media_photo_dir = os.path.join(settings.MEDIA_ROOT, f"photo\{today.year}\{today.month:02d}")
+        # 2) S'assurer du dossier (chemin portable Windows/Linux)
+        media_photo_dir = os.path.join(settings.MEDIA_ROOT, 'photo', str(today.year), f'{today.month:02d}')
         os.makedirs(media_photo_dir, exist_ok=True)
 
         # 3) Copie vers le disque (gicher le fichier persisté)
@@ -101,7 +101,7 @@ def media_photo_upload(request):
         except OSError as e:
             logger.warning(f'Erreur écriture média photo: {e}')
             messages.error(request, 'Impossible d\'écrire le fichier sur le disque.')
-            return redirect('courses:media_photo_form')
+            return redirect('courses:media_photo_upload')
 
         # 4) Enregistrement du modèle Media
         Media.objects.create(
@@ -111,7 +111,7 @@ def media_photo_upload(request):
             titre=fichier.name,
         )
         messages.success(request, 'Photo de mine photographiée enregistrée.')
-        return redirect('courses:media_photo_form')
+        return redirect('courses:media_photo_upload')
 
     return render(request, 'courses/media_photo_form.html')
 
@@ -378,6 +378,302 @@ def dashboard_view(request):
 # ═══════════════════════════════════════
 #  PROFIL UTILISATEUR
 # ═══════════════════════════════════════
+# ═══════════════════════════════════
+#  COMMANDES DE CERTIFICAT
+#  (facultatif, prix à part — délivré par l'admin, envoyé par email)
+# ═══════════════════════════════════
+@login_required
+def commander_certificat(request, tentative_id):
+    """Commande d'un certificat officiel pour une tentative certifiée."""
+    from .models import CommandeCertificat
+
+    tentative = get_object_or_404(
+        TentativeExamen, id=tentative_id, etudiant=request.user, est_termine=True
+    )
+    formation = tentative.examen.formation
+    if tentative.note < formation.seuil_certification:
+        messages.error(request, "Vous n'êtes pas certifié pour cette tentative.")
+        return redirect('courses:mes_certifications')
+
+    deja_commande = CommandeCertificat.objects.filter(
+        etudiant=request.user, tentative=tentative
+    ).exclude(statut='annulee').first()
+
+    params = ParametrePlateforme.get_instance()
+
+    if request.method == 'POST':
+        if deja_commande:
+            messages.info(request, 'Vous avez déjà une commande en cours pour ce certificat.')
+            return redirect('courses:mes_commandes_certificat')
+
+        email_livraison = request.POST.get('email_livraison', '').strip() or request.user.email
+        telephone = request.POST.get('telephone', '').strip()[:20]
+
+        if not email_livraison:
+            messages.error(request, "Veuillez indiquer l'email de réception du certificat.")
+            return redirect('courses:commander_certificat', tentative_id=tentative.id)
+
+        commande = CommandeCertificat.objects.create(
+            etudiant=request.user,
+            tentative=tentative,
+            montant=params.prix_certificat,
+            devise=params.monnaie,
+            email_livraison=email_livraison,
+            telephone=telephone,
+        )
+        messages.success(
+            request,
+            f'Commande #{commande.id} enregistrée. Passez au paiement pour finaliser.'
+        )
+        return redirect('courses:payer_certificat', commande_id=commande.id)
+
+    return render(request, 'courses/commander_certificat.html', {
+        'tentative': tentative,
+        'formation': formation,
+        'deja_commande': deja_commande,
+        'prix': params.prix_certificat,
+        'monnaie': params.monnaie,
+    })
+
+
+@login_required
+def mes_commandes_certificat(request):
+    """ Liste les commandes de certificat de l'apprenant. """
+    from .models import CommandeCertificat
+
+    commandes = CommandeCertificat.objects.filter(
+        etudiant=request.user
+    ).select_related('tentative__examen__formation')
+
+    return render(request, 'courses/mes_commandes_certificat.html', {
+        'commandes': commandes,
+    })
+
+
+@login_required
+def payer_certificat(request, commande_id):
+    """Paiement Mobile Money (MaishaPay) d'une commande de certificat."""
+    import re as _re
+    from .models import CommandeCertificat
+
+    commande = get_object_or_404(
+        CommandeCertificat, id=commande_id, etudiant=request.user
+    )
+
+    if commande.statut != 'en_attente_paiement':
+        messages.info(request, f'Cette commande est déjà « {commande.get_statut_display()} ».')
+        return redirect('courses:mes_commandes_certificat')
+
+    reseaux = Abonnement.RESEAU_CHOICES
+
+    if request.method == 'POST':
+        reseau = request.POST.get('reseau', 'airtel')
+        if reseau not in dict(reseaux):
+            reseau = 'airtel'
+        telephone = _re.sub(r'[^0-9+]', '', request.POST.get('telephone', '').strip())[:20]
+        if not telephone.startswith('+'):
+            telephone = '+' + telephone
+        if len(telephone) < 10:
+            messages.error(request, 'Numéro de téléphone invalide.')
+            return redirect('courses:payer_certificat', commande_id=commande.id)
+
+        commande.telephone = telephone
+        commande.save(update_fields=['telephone'])
+
+        reference = f"GMC-{timezone.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
+        transaction = TransactionPaiement.objects.create(
+            commande_certificat=commande,
+            reference_externe=reference,
+            montant=commande.montant,
+            devise=commande.devise,
+            telephone=telephone,
+            reseau=reseau,
+        )
+
+        provider_map = {'airtel': 'AIRTEL', 'vodacom': 'MPESA', 'orange': 'ORANGE', 'africell': 'AFRICELL'}
+        api_url = getattr(settings, 'MAISHAPAY_API_URL', '')
+        public_key = getattr(settings, 'MAISHAPAY_API_KEY', '')
+        secret_key = getattr(settings, 'MAISHAPAY_SECRET_KEY', '')
+        merchant_id = getattr(settings, 'MAISHAPAY_MERCHANT_ID', '')
+
+        # Mode démo : confirmation immédiate (pas de clé API ou démo forcée)
+        if getattr(settings, 'MAISHAPAY_DEMO_MODE', False) or not (api_url and public_key and secret_key):
+            transaction.marquer_reussi({'mode': 'demo', 'message': 'Paiement certificat (mode démo)'})
+            messages.success(
+                request,
+                f'✅ Paiement de {commande.montant} {commande.devise} confirmé (mode démo). '
+                f'Votre certificat sera délivré par email après validation par l\'administrateur.'
+            )
+            return redirect('courses:mes_commandes_certificat')
+
+        try:
+            payload = {
+                'publicApiKey': public_key,
+                'secretApiKey': secret_key,
+                'merchantId': merchant_id,
+                'gatewayMode': 0,
+                'transactionReference': reference,
+                'amount': float(commande.montant),
+                'currency': commande.devise,
+                'chanel': 'MOBILEMONEY',
+                'provider': provider_map.get(reseau, reseau.upper()),
+                'walletID': telephone,
+                'callbackUrl': getattr(settings, 'MAISHAPAY_CALLBACK_URL', ''),
+            }
+            resp = http_requests.post(
+                api_url, json=payload,
+                headers={'Content-Type': 'application/json', 'Accept': 'application/json'},
+                timeout=15,
+            )
+            if resp.status_code in (200, 201):
+                try:
+                    transaction.metadata_reponse = resp.json()
+                except Exception:
+                    transaction.metadata_reponse = {'raw': resp.text[:500]}
+                transaction.save(update_fields=['metadata_reponse'])
+                messages.success(
+                    request,
+                    f'Paiement initié. Vérifiez votre téléphone ({telephone}) pour confirmer '
+                    f'le transfert de {commande.montant} {commande.devise}.'
+                )
+            else:
+                transaction.marquer_echoue({'status_code': resp.status_code, 'body': resp.text[:500]})
+                messages.error(request, f'Erreur API MaishaPay (HTTP {resp.status_code}). Réessayez.')
+        except Exception as e:
+            logger.exception(f"Erreur MaishaPay commande certificat {reference}")
+            transaction.marquer_echoue({'error': str(e)})
+            messages.error(request, f'Erreur de connexion au service de paiement : {str(e)}')
+
+        return redirect('courses:mes_commandes_certificat')
+
+    params = ParametrePlateforme.get_instance()
+    return render(request, 'courses/payer_certificat.html', {
+        'commande': commande,
+        'reseaux': reseaux,
+        'compte_equity': params.compte_equity,
+    })
+
+
+@user_passes_test(is_formateur, login_url='courses:login')
+def admin_commandes_certificat(request):
+    """ Back-office : validation des paiements et délivrance des certificats (par email). """
+    from django.core.mail import EmailMessage
+    from .models import CommandeCertificat
+
+    filtre = request.GET.get('filtre', 'all')
+    base = CommandeCertificat.objects.select_related(
+        'etudiant', 'tentative__examen__formation', 'delivre_par'
+    )
+
+    commandes = base.all()
+    if filtre == 'en_attente':
+        commandes = base.filter(statut='en_attente_paiement')
+    elif filtre == 'payees':
+        commandes = base.filter(statut='payee')
+    elif filtre == 'delivrees':
+        commandes = base.filter(statut='delivree')
+
+    stats = {
+        'total': base.count(),
+        'en_attente': base.filter(statut='en_attente_paiement').count(),
+        'payees': base.filter(statut='payee').count(),
+        'delivrees': base.filter(statut='delivree').count(),
+    }
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+        commande_id = request.POST.get('commande_id', '')
+        commande = get_object_or_404(CommandeCertificat, id=commande_id)
+
+        if action == 'marquer_payee':
+            if commande.statut == 'en_attente_paiement':
+                commande.statut = 'payee'
+                commande.date_paiement = timezone.now()
+                commande.save(update_fields=['statut', 'date_paiement'])
+                messages.success(request, f'Commande #{commande.id} marquée comme payée.')
+            else:
+                messages.error(request, 'Seule une commande en attente peut être marquée payée.')
+
+        elif action == 'marquer_delivree':
+            tentative = commande.tentative
+            formation = tentative.examen.formation
+            pdf_bytes = generer_certificat_pdf(commande.etudiant, formation, tentative)
+            if not pdf_bytes:
+                messages.error(request, f'Erreur de génération du certificat (commande #{commande.id}).')
+                return redirect('courses:admin_commandes_certificat')
+
+            nom = commande.etudiant.get_full_name() or commande.etudiant.username
+            email = EmailMessage(
+                subject=f'Votre certificat Geomanager — {formation.titre}',
+                body=(
+                    f"Bonjour {nom},\n\n"
+                    f"Voici votre certificat officiel pour la formation « {formation.titre} ».\n"
+                    f"Score obtenu : {tentative.note}% — certifié le "
+                    f"{tentative.date_soumission.strftime('%d/%m/%Y') if tentative.date_soumission else 'N/A'}.\n\n"
+                    f"Conservez ce document : son authenticité est vérifiable sur Geomanager "
+                    f"via son numéro unique.\n\n"
+                    f"L'équipe Geomanager"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[commande.email_livraison],
+            )
+            email.attach(
+                f"certificat_{commande.etudiant.username}_{formation.id}_{tentative.id}.pdf",
+                pdf_bytes,
+                'application/pdf',
+            )
+            try:
+                email.send(fail_silently=False)
+            except Exception as e:
+                logger.exception(f"Envoi email certificat commande #{commande.id} échoué")
+                messages.error(
+                    request,
+                    f'Email non envoyé vers {commande.email_livraison} : {str(e)}. '
+                    f'Le certificat n\'a pas été marqué délivré.'
+                )
+                return redirect('courses:admin_commandes_certificat')
+
+            commande.statut = 'delivree'
+            commande.date_delivrance = timezone.now()
+            commande.delivre_par = request.user
+            commande.save(update_fields=['statut', 'date_delivrance', 'delivre_par'])
+            messages.success(
+                request,
+                f'Certificat envoyé à {commande.email_livraison} — commande #{commande.id} délivrée.'
+            )
+
+        return redirect('courses:admin_commandes_certificat')
+
+    return render(request, 'courses/admin_commandes_certificat.html', {
+        'commandes': commandes,
+        'filtre': filtre,
+        'stats': stats,
+    })
+
+
+@user_passes_test(is_formateur, login_url='courses:login')
+def admin_telecharger_certificat(request, tentative_id):
+    """Téléchargement du certificat PDF — réservé à l'administrateur/formateur."""
+    tentative = get_object_or_404(TentativeExamen, id=tentative_id, est_termine=True)
+    formation = tentative.examen.formation
+    if tentative.note < formation.seuil_certification:
+        messages.error(request, 'Tentative non certifiée.')
+        return redirect('courses:admin_commandes_certificat')
+
+    filename = f"certificat_{tentative.etudiant.username}_{formation.id}_{tentative.id}.pdf"
+    pdf_bytes = generer_certificat_pdf(tentative.etudiant, formation, tentative)
+    if not pdf_bytes:
+        messages.error(request, 'Erreur lors de la génération du certificat.')
+        return redirect('courses:admin_commandes_certificat')
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+# ═══════════════════════════════════
+#  PROFIL UTILISATEUR
+# ═══════════════════════════════════
 @login_required
 def profile_view(request):
     user = request.user
@@ -447,7 +743,7 @@ def verifier_certificat_view(request):
                     'formation': tentative.examen.formation.titre,
                     'score': f"{tentative.note:.1f}%",
                     'date': tentative.date_soumission.strftime('%d/%m/%Y') if tentative.date_soumission else 'N/A',
-                    'formateur': 'Delphin BAZIBUHE',
+                    'formateur': 'MSc. Delphin BAZIBUHE',
                     'statut': 'Certificat Authentique',
                 }
             else:
@@ -516,6 +812,7 @@ def page_paiement(request):
         'montant': montant,
         'monnaie': monnaie,
         'derniere_reference': derniere_reference,
+        'compte_equity': params.compte_equity,
     })
 
 
@@ -852,6 +1149,11 @@ def telecharger_certificat(request, tentative_id):
     filename = f"certificat_{request.user.username}_{formation.id}_{tentative.id}.pdf"
     pdf_bytes = None
 
+    # Réservé à l'administrateur (les apprenants commandent leur certificat)
+    if not is_formateur(request.user):
+        messages.info(request, "Le certificat se commande — il vous sera envoyé par email.")
+        return redirect('courses:mes_certifications')
+
     # 1) Tenter de lire depuis le cache disque (utile en local)
     try:
         filepath = os.path.join(settings.MEDIA_ROOT, 'certificats', filename)
@@ -891,6 +1193,11 @@ def visualiser_certificat(request, tentative_id):
 
     filename = f"certificat_{request.user.username}_{formation.id}_{tentative.id}.pdf"
     pdf_bytes = None
+
+    # Réservé à l'administrateur (les apprenants commandent leur certificat)
+    if not is_formateur(request.user):
+        messages.info(request, "Le certificat se commande — il vous sera envoyé par email.")
+        return redirect('courses:mes_certifications')
 
     # 1) Tenter de lire depuis le cache disque (utile en local)
     try:
@@ -1124,7 +1431,7 @@ def admin_module_add(request, formation_id):
             ordre=request.POST.get('ordre', 0),
         )
         messages.success(request, 'Module ajouté.')
-    return redirect('courses:admin_formation_form', formation_id=formation.id)
+    return redirect('courses:admin_formation_edit', formation_id=formation.id)
 
 
 @user_passes_test(is_formateur, login_url='courses:login')
@@ -1142,7 +1449,7 @@ def admin_lecon_add(request, module_id):
             ordre=request.POST.get('ordre', 0),
         )
         messages.success(request, 'Leçon ajoutée.')
-    return redirect('courses:admin_formation_form', formation_id=module.formation.id)
+    return redirect('courses:admin_formation_edit', formation_id=module.formation.id)
 
 
 @user_passes_test(is_formateur, login_url='courses:login')
@@ -1192,7 +1499,7 @@ def admin_examen_form(request, formation_id, examen_id=None):
                         )
 
             messages.success(request, f'Examen "{e.titre}" enregistré avec succès.')
-            return redirect('courses:admin_formation_form', formation_id=formation.id)
+            return redirect('courses:admin_formation_edit', formation_id=formation.id)
     else:
         form = ExamenForm(instance=examen)
 

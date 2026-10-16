@@ -1,10 +1,23 @@
-{% extends "courses/base.html" %}
+{% extends "courses/base.html" %}{% load static %}
 
-{% block title %}Géomanager — Formation minière & exploration{% endblock %}
+{% block title %}Geomanager — Académie de l'exploration et de l'exploitation minière{% endblock %}
 
 {% block content %}
+
 <!-- ══════════════ HERO ══════════════ -->
 <section class="relative overflow-hidden bg-brand-teal pt-16 sm:pt-20 pb-16 sm:pb-24">
+    <!-- fond : photo de mine -->
+    <div class="absolute inset-0" aria-hidden="true">
+        {% if mine_photo %}
+            <img src="{{ mine_photo.url }}" alt="" class="w-full h-full object-cover object-center">
+        {% else %}
+            <picture class="block w-full h-full">
+                <source srcset="{% static 'img/mine-hero.webp' %}" type="image/webp">
+                <img src="{% static 'img/mine-hero.jpg' %}" alt="Mine a ciel ouvert" class="w-full h-full object-cover object-center">
+            </picture>
+        {% endif %}
+        <div class="absolute inset-0 bg-brand-teal/85"></div>
+    </div>
     <!-- décor : deux belles halos -->
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div class="absolute top-0 right-0 w-80 h-80 bg-brand-copper/25 rounded-full blur-3xl"></div>
@@ -12,21 +25,21 @@
     </div>
 
     <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+        <div class="max-w-3xl mx-auto">
 
             <!-- texte -->
-            <div class="flex-1 text-center lg:text-left">
+            <div class="text-center lg:text-left">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-copper/10 border border-brand-copper/20 mb-6">
                     <span class="w-2 h-2 rounded-full bg-brand-copper animate-pulse"></span>
                     <span class="text-brand-copper text-sm font-medium tracking-wide">Expert en exploration et géologie minière</span>
                 </div>
 
                 <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight tracking-tight">
-                    Géomanager
+                    Geomanager
                 </h1>
                 <p class="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-brand-copper leading-tight tracking-tight">
-                    Expert en exploration et géologie minière
-                </h1>
+                    L'Académie de formation dédiée à l'excellence dans l'exploration et l'exploitation minière
+                </p>
 
                 <p class="mt-6 text-lg text-stone-300 max-w-xl leading-relaxed">
                     Formations certifiantes réunissant géologie, sécurité minière, exploitation et traitement du minerai.
@@ -60,54 +73,15 @@
                         </svg>
                     </a>
                 </div>
-            </div>
-
-            <!-- photo de mine -->
-            <div class="flex-shrink-0 w-full lg:w-auto">
                 {% if mine_photo %}
-                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 max-w-sm mx-auto">
-                        <div class="flex items-center gap-2 mb-4">
-                            <svg width="32" height="26" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" class="h-8">
-                                <defs>
-                                    <linearGradient id="home-gradG" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#2a5e78;stop-opacity:1" />
-                                        <stop offset="100%" style="stop-color:#1a3a4a;stop-opacity:1" />
-                                    </linearGradient>
-                                    <linearGradient id="home-gradM" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#c88e6e;stop-opacity:1" />
-                                        <stop offset="100%" style="stop-color:#9e5e3e;stop-opacity:1" />
-                                    </linearGradient>
-                                </defs>
-                                <path d="M30 12 L30 52 L48 52 L48 42 L38 42 L38 48 L34 48 L34 16 L48 16 L48 24 L44 24 L44 28 L52 28 L52 12 Z" fill="url(#home-gradG)" />
-                                <path d="M58 12 L58 52 L62 52 L62 22 L70 38 L78 22 L78 52 L82 52 L82 12 L74 12 L70 32 L66 12 Z" fill="url(#home-gradM)" />
-                            </defs>
-                        </svg>
-                        <div class="text-xs text-stone-400 uppercase tracking-wider font-semibold">Photo de mine</div>
-                    </div>
-                    <img src="{{ mine_photo.url }}" alt="Photo de mine"
-                         class="w-full rounded-xl border border-white/20 object-cover max-h-52 shadow-md">
-                    <div class="mt-4 pt-4 border-t border-white/10 text-center">
-                        <p class="text-xs text-stone-400">
-                            Votre photo de mine · mise à jour le {{ mine_photo.date_ajout|date:"d/m/Y" }}
-                            <a href="{% url 'courses:media_photo_upload' %}" class="ml-1 hover:text-brand-copper-dark font-medium">Modifier →</a>
-                        </p>
-                    </div>
+                <p class="mt-6 text-xs text-stone-400">
+                    Votre photo de mine · mise à jour le {{ mine_photo.date_ajout|date:"d/m/Y" }}
+                    <a href="{% url 'courses:media_photo_upload' %}" class="ml-1 hover:text-brand-copper-dark font-medium">Modifier →</a>
+                </p>
                 {% else %}
-                    <div class="relative rounded-2xl overflow-hidden border border-white/20 shadow-xl max-w-sm mx-auto">
-                        <picture>
-                        <source srcset="{% static 'img/mine-hero.webp' %}" type="image/webp">
-                        <img src="{% static 'img/mine-hero.jpg' %}" alt="Excavatrice à godets dans une mine à ciel ouvert"
-                             class="w-full h-auto object-cover max-h-80" loading="lazy">
-                    </picture>
-                    </div>
-                    <div class="mt-4 pt-4 border-t border-white/10 text-center">
-                        <p class="text-xs text-stone-400">
-                            Photo de mine requise pour valider une formation
-                        </p>
-                    </div>
+                <p class="mt-6 text-xs text-stone-400">Photo de mine requise pour valider une formation</p>
                 {% endif %}
             </div>
-
         </div>
     </div>
 
@@ -275,7 +249,7 @@
                 </h2>
                 <p class="mt-4 text-stone-300 text-lg">
                     Obtenez vos certifications en géologie, sécurité et exploitation minière.
-                    Développé par <span class="text-brand-copper font-semibold">Géomanager</span>.
+                    Développé par <span class="text-brand-copper font-semibold">Geomanager</span>.
                 </p>
                 <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                     <a href="{% url 'courses:register' %}"

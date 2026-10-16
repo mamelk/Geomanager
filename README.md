@@ -1,4 +1,4 @@
-# 🏔️ Géomanager — Plateforme de formation minière
+# 🏔️ Geomanager — Plateforme de formation minière
 
 Application web Django pour la gestion de formations en ligne avec système de paiement MaishaPay.
 

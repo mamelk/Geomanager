@@ -54,3 +54,11 @@ geomanager.zip
 skills-lock.json
 .agents/
 .claude/
+
+# Artefacts de déploiement & fichiers locaux (ne jamais commiter)
+.vercel/
+vercel-manifest.json
+vercel-deploy.zip
+static_collect.zip
+get-pip.py
+tmp/
