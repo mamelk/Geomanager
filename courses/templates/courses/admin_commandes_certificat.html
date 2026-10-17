@@ -1,0 +1,163 @@
+{% extends "courses/base.html" %}
+{% block title %}Commandes de certificats — Geomanager{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Commandes de certificats</h1>
+    <p class="mt-1 text-stone-500 text-sm">
+        Validez les paiements et marquez les commandes comme délivrées après envoi du PDF par email.
+    </p>
+</div>
+
+<!-- Filtres -->
+<div class="flex flex-wrap gap-2 mb-6">
+    <a href="{% url 'courses:admin_commandes_certificat' %}"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition
+              {% if filtre == 'all' %}bg-amber-500 text-slate-900 shadow-sm{% else %}bg-white text-stone-500 border border-stone-200 hover:bg-stone-50{% endif %}">
+        Toutes ({{ stats.total }})
+    </a>
+    <a href="?filtre=en_attente"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition
+              {% if filtre == 'en_attente' %}bg-amber-500 text-slate-900 shadow-sm{% else %}bg-white text-stone-500 border border-stone-200 hover:bg-stone-50{% endif %}">
+        💳 En attente ({{ stats.en_attente }})
+    </a>
+    <a href="?filtre=payees"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition
+              {% if filtre == 'payees' %}bg-blue-500 text-white shadow-sm{% else %}bg-white text-stone-500 border border-stone-200 hover:bg-stone-50{% endif %}">
+        ⏳ Payées à délivrer ({{ stats.payees }})
+    </a>
+    <a href="?filtre=delivrees"
+       class="px-4 py-2 rounded-xl text-sm font-semibold transition
+              {% if filtre == 'delivrees' %}bg-emerald-500 text-white shadow-sm{% else %}bg-white text-stone-500 border border-stone-200 hover:bg-stone-50{% endif %}">
+        ✓ Délivrées ({{ stats.delivrees }})
+    </a>
+</div>
+
+{% if commandes %}
+<div class="hidden md:block bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-stone-100 bg-stone-50">
+                    <th class="text-left px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">#</th>
+                    <th class="text-left px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Apprenant</th>
+                    <th class="text-left px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Formation</th>
+                    <th class="text-left px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Email livraison</th>
+                    <th class="text-center px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Montant</th>
+                    <th class="text-center px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Statut</th>
+                    <th class="text-center px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-stone-50">
+                {% for c in commandes %}
+                <tr class="hover:bg-stone-50/50 transition">
+                    <td class="px-5 py-3.5 text-sm font-bold text-slate-700">#{{ c.id }}</td>
+                    <td class="px-5 py-3.5">
+                        <div class="text-sm font-semibold text-slate-700">{{ c.etudiant.get_full_name|default:c.etudiant.username }}</div>
+                        <div class="text-xs text-stone-400">@{{ c.etudiant.username }}</div>
+                    </td>
+                    <td class="px-5 py-3.5 text-sm text-stone-600">
+                        {{ c.tentative.examen.formation.titre }}
+                        <div class="text-xs text-stone-400">Score : {{ c.tentative.note }}%</div>
+                    </td>
+                    <td class="px-5 py-3.5 text-sm text-stone-600">{{ c.email_livraison }}</td>
+                    <td class="px-5 py-3.5 text-center text-sm font-bold text-brand-teal">
+                        {{ c.montant|floatformat:0 }} {{ c.devise }}
+                    </td>
+                    <td class="px-5 py-3.5 text-center">
+                        {% if c.statut == 'delivree' %}
+                            <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">✓ Délivrée</span>
+                        {% elif c.statut == 'payee' %}
+                            <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">⏳ Payée</span>
+                        {% elif c.statut == 'en_attente_paiement' %}
+                            <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">💳 Attente paiement</span>
+                        {% else %}
+                            <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">✗ Annulée</span>
+                        {% endif %}
+                        {% if c.reference_paiement %}
+                            <div class="text-[10px] text-stone-400 mt-1">{{ c.reference_paiement }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-3.5 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            {% if c.statut == 'en_attente_paiement' %}
+                            <form method="POST" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="commande_id" value="{{ c.id }}">
+                                <input type="hidden" name="action" value="marquer_payee">
+                                <button type="submit" class="text-xs text-blue-600 hover:text-blue-700 font-semibold">Marquer payée</button>
+                            </form>
+                            <span class="text-stone-300">·</span>
+                            {% endif %}
+                            {% if c.statut != 'delivree' and c.statut != 'annulee' %}
+                            <form method="POST" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="commande_id" value="{{ c.id }}">
+                                <input type="hidden" name="action" value="marquer_delivree">
+                                <button type="submit" class="text-xs text-emerald-600 hover:text-emerald-700 font-semibold">✓ Délivrée</button>
+                            </form>
+                            <span class="text-stone-300">·</span>
+                            {% endif %}
+                            <a href="{% url 'courses:admin_telecharger_certificat' c.tentative.id %}"
+                               class="text-xs text-amber-600 hover:text-amber-700 font-semibold">📄 PDF</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Mobile cards -->
+<div class="md:hidden space-y-3">
+    {% for c in commandes %}
+    <div class="bg-white rounded-xl shadow-sm border border-stone-100 p-4">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-bold text-slate-700">Commande #{{ c.id }}</span>
+            {% if c.statut == 'delivree' %}
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">✓ Délivrée</span>
+            {% elif c.statut == 'payee' %}
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">⏳ Payée</span>
+            {% else %}
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">💳 Attente paiement</span>
+            {% endif %}
+        </div>
+        <div class="text-sm font-semibold text-slate-700">{{ c.etudiant.get_full_name|default:c.etudiant.username }}</div>
+        <div class="text-xs text-stone-400">{{ c.tentative.examen.formation.titre }} · {{ c.email_livraison }}</div>
+        <div class="flex items-center justify-between mt-3">
+            <span class="text-sm font-bold text-brand-teal">{{ c.montant|floatformat:0 }} {{ c.devise }}</span>
+            <div class="flex items-center gap-3">
+                {% if c.statut == 'en_attente_paiement' %}
+                <form method="POST" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="commande_id" value="{{ c.id }}">
+                    <input type="hidden" name="action" value="marquer_payee">
+                    <button type="submit" class="text-xs text-blue-600 font-semibold">Marquer payée</button>
+                </form>
+                {% endif %}
+                {% if c.statut != 'delivree' and c.statut != 'annulee' %}
+                <form method="POST" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="commande_id" value="{{ c.id }}">
+                    <input type="hidden" name="action" value="marquer_delivree">
+                    <button type="submit" class="text-xs text-emerald-600 font-semibold">✓ Délivrée</button>
+                </form>
+                {% endif %}
+                <a href="{% url 'courses:admin_telecharger_certificat' c.tentative.id %}" class="text-xs text-amber-600 font-semibold">📄 PDF</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-16 bg-white rounded-2xl border border-stone-100">
+    <svg class="w-16 h-16 mx-auto text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+    </svg>
+    <h3 class="mt-4 text-lg font-medium text-gray-500">Aucune commande de certificat</h3>
+    <p class="mt-1 text-sm text-gray-400">Les commandes des apprenants apparaîtront ici.</p>
+</div>
+{% endif %}
+{% endblock %}

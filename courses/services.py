@@ -14,7 +14,7 @@ def evaluer_examen(etudiant, examen, reponses_soumises):
     Si la note >= seuil, génère un certificat PDF.
 
     Returns:
-        dict contenant note, pourcentage, est_certifie, tentative, certificat_url
+        dict contenant note, pourcentage, est_certifie, tentative, certificat_pdf_bytes
     """
     questions = examen.questions.all()
     total = questions.count()
@@ -64,13 +64,13 @@ def evaluer_examen(etudiant, examen, reponses_soumises):
         'est_certifie': est_certifie,
         'seuil_certification': examen.formation.seuil_certification,
         'tentative': tentative,
-        'certificat_url': None,
+        'certificat_pdf_bytes': None,
     }
 
     # Générer le certificat PDF si certifié
     if est_certifie:
-        url = generer_certificat_pdf(etudiant, examen.formation, tentative)
-        resultats['certificat_url'] = url
+        pdf_bytes = generer_certificat_pdf(etudiant, examen.formation, tentative)
+        resultats['certificat_pdf_bytes'] = pdf_bytes
 
     return resultats
 
@@ -93,6 +93,8 @@ def generer_certificat_pdf(etudiant, formation, tentative):
         return None
 
     try:
+        from io import BytesIO
+
         # ── Palette GeoManager ──
         TEAL       = HexColor('#1a3a4a')
         TEAL_LIGHT = HexColor('#2a5e78')
@@ -112,16 +114,14 @@ def generer_certificat_pdf(etudiant, formation, tentative):
         duree_str = formation.duree_totale_formatee if hasattr(formation, 'duree_totale_formatee') else ''
         numero_cert = tentative.numero_certificat or f"GM-{tentative.id:04d}"
 
-        # ── Créer le dossier certificats ──
-        cert_dir = os.path.join(settings.MEDIA_ROOT, 'certificats')
-        os.makedirs(cert_dir, exist_ok=True)
         filename = f"certificat_{etudiant.username}_{formation.id}_{tentative.id}.pdf"
-        filepath = os.path.join(cert_dir, filename)
 
         # ── Dimensions A4 Paysage ──
         w, h = landscape(A4)
-        c = canvas.Canvas(filepath, pagesize=landscape(A4))
-        c.setTitle(f"Certificat Géomanager — {titre_formation}")
+        # Utiliser BytesIO pour compatibilité serverless (Vercel)
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=landscape(A4))
+        c.setTitle(f"Certificat Geomanager — {titre_formation}")
 
         # ══════════════════════════════════════════════════════════
         # FOND & CADRE
@@ -290,7 +290,7 @@ def generer_certificat_pdf(etudiant, formation, tentative):
         c.drawCentredString(w / 2, footer_y + 14, "GM")
         c.setFillColor(SLATE_500)
         c.setFont("Helvetica", 7)
-        c.drawCentredString(w / 2, footer_y - 5, "Géomanager")
+        c.drawCentredString(w / 2, footer_y - 5, "Geomanager")
         c.setFont("Helvetica-Oblique", 6)
         c.drawCentredString(w / 2, footer_y - 14, "Certifié authentique")
 
@@ -306,7 +306,7 @@ def generer_certificat_pdf(etudiant, formation, tentative):
         c.drawRightString(w - 60, footer_y + 6, FORMATEUR_NOM)
         c.setFillColor(SLATE_500)
         c.setFont("Helvetica-Oblique", 8)
-        c.drawRightString(w - 60, footer_y - 8, "Expert en Ingénierie Minière")
+        c.drawRightString(w - 60, footer_y - 8, "Expert en Exploration et Géologie minière")
 
         # ══════════════════════════════════════════════════════════
         # BANDEAU INFÉRIEUR : DÉVELOPPÉ PAR ESTECH
@@ -315,14 +315,29 @@ def generer_certificat_pdf(etudiant, formation, tentative):
         c.rect(0, 0, w, 30, fill=True, stroke=False)
         c.setFillColor(WHITE)
         c.setFont("Helvetica", 7)
-        c.drawCentredString(w / 2, 11, "Développé par ESTECH  •  www.estech.cd  •  Plateforme Géomanager")
+        c.drawCentredString(w / 2, 11, "Développé par ESTECH  •  www.estech.cd  •  Plateforme Geomanager")
 
         # ══════════════════════════════════════════════════════════
         # FINALISER
         # ══════════════════════════════════════════════════════════
         c.showPage()
         c.save()
-        return f"{settings.MEDIA_URL}certificats/{filename}"
+        buffer.seek(0)
+        pdf_bytes = buffer.read()
+        buffer.close()
+
+        # Tenter de sauvegarder sur disque (optionnel, échoue gracieusement en serverless)
+        try:
+            cert_dir = os.path.join(settings.MEDIA_ROOT, 'certificats')
+            os.makedirs(cert_dir, exist_ok=True)
+            filepath = os.path.join(cert_dir, filename)
+            with open(filepath, 'wb') as f:
+                f.write(pdf_bytes)
+        except OSError:
+            pass  # Serverless : pas d'écriture disque possible
+
+        # Retourner les bytes du PDF pour compatibilité serverless
+        return pdf_bytes
 
     except Exception as e:
         import logging

@@ -1,0 +1,45 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "geomanager/wsgi.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb",
+        "runtime": "python3.12"
+      }
+    },
+    {
+      "src": "staticfiles/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "build.sh",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "staticfiles_build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/media/(.*)",
+      "dest": "/media/$1"
+    },
+    {
+      "src": "/static/(.*)",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      },
+      "dest": "/staticfiles/$1"
+    },
+    {
+      "src": "/staticfiles/(.*)",
+      "dest": "/staticfiles/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "geomanager/wsgi.py"
+    }
+  ]
+}

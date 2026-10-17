@@ -1,10 +1,11 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="fr" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Géomanager{% endblock %}</title>
+    <title>{% block title %}Geomanager{% endblock %}</title>
+    {% load static %}
+    <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -38,9 +39,22 @@
 
                 <!-- Logo -->
                 <a href="{% url 'courses:home' %}" class="flex items-center gap-3 flex-shrink-0">
-                    <img src="{% static 'geomanager_logo_small.svg' %}" alt="Géomanager" class="h-10 w-auto">
-                    <span class="text-xl font-bold text-white hidden sm:block">
-                        Geo<span class="text-brand-copper">Manager</span>
+                    <svg width="40" height="32" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" class="h-10 w-auto">
+                        <defs>
+                            <linearGradient id="nav-gradG" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#2a5e78;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#1a3a4a;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="nav-gradM" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#c88e6e;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#9e5e3e;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M30 12 L30 52 L48 52 L48 42 L38 42 L38 48 L34 48 L34 16 L48 16 L48 24 L44 24 L44 28 L52 28 L52 12 Z" fill="url(#nav-gradG)" />
+                        <path d="M58 12 L58 52 L62 52 L62 22 L70 38 L78 22 L78 52 L82 52 L82 12 L74 12 L70 32 L66 12 Z" fill="url(#nav-gradM)" />
+                    </svg>
+                    <span class="text-xl font-bold text-white hidden sm:block tracking-tight">
+                        Geomanager
                     </span>
                 </a>
 
@@ -48,39 +62,57 @@
                 <div class="hidden md:flex items-center gap-1">
 
                     {% if user.is_authenticated %}
-                        {% if user.is_staff %}
-                            {# ─── MENU FORMATEUR ─── #}
-                            <a href="{% url 'courses:admin_dashboard' %}"
-                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
-                                Dashboard
-                            </a>
-                            <a href="{% url 'courses:admin_formations' %}"
-                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
-                                Formations
-                            </a>
-                            <a href="{% url 'courses:admin_apprenants' %}"
-                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
-                                Apprenants
-                            </a>
-                            <a href="{% url 'courses:admin_certifications' %}"
-                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
-                                Certifications
-                            </a>
+                    {% if user.is_staff %}
+                        {# ─── MENU FORMATEUR ─── #}
+                        <a href="{% url 'courses:admin_dashboard' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                           <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            Dashboard
+                        </a>
+                        <a href="{% url 'courses:admin_formations' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            Formations
+                        </a>
+                        <a href="{% url 'courses:admin_apprenants' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            Apprenants
+                        </a>
+                        <a href="{% url 'courses:admin_certifications' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            Certifications
+                        </a>
+                        <a href="{% url 'courses:admin_demandes_formation' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                            Demandes
+                        </a>
                         {% else %}
                             {# ─── MENU APPRENANT ─── #}
-                            <a href="{% url 'courses:dashboard' %}"
-                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
-                                Dashboard
-                            </a>
-                            <a href="{% url 'courses:liste_formations' %}"
-                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
-                                Formations
-                            </a>
-                            <a href="{% url 'courses:mes_certifications' %}"
-                               class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
-                                Certifications
-                            </a>
-                        {% endif %}
+                        <a href="{% url 'courses:dashboard' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            Dashboard
+                        </a>
+                        <a href="{% url 'courses:liste_formations' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            Formations
+                        </a>
+                        <a href="{% url 'courses:mes_certifications' %}"
+                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            Certifications
+                        </a>
+                        <a href="{% url 'courses:mes_demandes' %}"                           class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
+                            <span class="inline-flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                                Mes demandes
+                            </span>
+                        </a>
+                    {% endif %}
 
                         {# ─── COMMUN : Certificat + À propos + User ─── #}
                         <a href="{% url 'courses:verifier_certificat' %}"
@@ -98,9 +130,8 @@
                                     {{ user.username|first|upper }}
                                 </div>
                                 <span class="text-sm text-stone-300">{{ user.username }}</span>
-                            </a>
-                            <a href="{% url 'courses:logout' %}"
-                               class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition">
+                            </a>                            <a href="{% url 'courses:logout' %}" class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 Déconnexion
                             </a>
                         </div>
@@ -109,7 +140,10 @@
                         {# ─── NON CONNECTÉ ─── #}
                         <a href="{% url 'courses:liste_formations' %}"
                            class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
-                            Formations
+                            <span class="inline-flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                                Formations
+                            </span>
                         </a>
                         <a href="{% url 'courses:verifier_certificat' %}"
                            class="px-3 py-2 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 font-medium transition text-sm">
@@ -125,13 +159,13 @@
                                 Connexion
                             </a>
                             <a href="{% url 'courses:register' %}"
-                               class="px-4 py-1.5 rounded-lg bg-brand-copper hover:bg-brand-copper-dark text-white text-sm font-bold transition">
+                               class="px-4 py-1.5 rounded-lg bg-brand-copper hover:bg-brand-copper-dark text-white text-sm font-bold transition flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                                 S'inscrire
                             </a>
                         </div>
                     {% endif %}
                 </div>
-
                 <!-- Burger button (mobile) -->
                 <button id="menu-btn" class="md:hidden p-2 rounded-lg hover:bg-white/10 transition" aria-label="Menu">
                     <svg class="w-6 h-6 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,11 +209,13 @@
                         </a>
                     {% endif %}
 
-                    <a href="{% url 'courses:verifier_certificat' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
-                        🔍 Vérifier un certificat
+                    <a href="{% url 'courses:verifier_certificat' %}"                           class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Vérifier un certificat
                     </a>
                     <a href="{% url 'courses:a_propos' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
-                        ℹ️ À propos
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
+                        À propos
                     </a>
 
                     <div class="border-t border-white/10 pt-2 mt-2">
@@ -188,26 +224,29 @@
                                 {{ user.username|first|upper }}
                             </div>
                             <span class="text-sm text-stone-300">Profil</span>
-                        </a>
-                        <a href="{% url 'courses:logout' %}" class="block px-3 py-2 rounded-lg hover:bg-red-500/10 text-red-400 font-medium text-sm mt-1">
-                            Déconnexion
-                        </a>
+                        </a>                            <a href="{% url 'courses:logout' %}" class="block px-3 py-2 rounded-lg hover:bg-red-500/10 text-red-400 font-medium text-sm mt-1">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Déconnexion
+                            </a>
                     </div>
                 {% else %}
                     <a href="{% url 'courses:liste_formations' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
                         📚 Formations
                     </a>
-                    <a href="{% url 'courses:verifier_certificat' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
-                        🔍 Vérifier un certificat
+                    <a href="{% url 'courses:verifier_certificat' %}"                           class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Vérifier un certificat
                     </a>
                     <a href="{% url 'courses:a_propos' %}" class="block px-3 py-2 rounded-lg hover:bg-white/10 text-stone-300 font-medium text-sm">
-                        ℹ️ À propos
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
+                        À propos
                     </a>
-                    <div class="border-t border-white/10 pt-2 mt-2 space-y-2">
-                        <a href="{% url 'courses:login' %}" class="block px-3 py-2 rounded-lg text-center border border-white/20 text-stone-300 font-medium text-sm">
+                    <div class="border-t border-white/10 pt-2 mt-2 space-y-2">                    <a href="{% url 'courses:login' %}" class="block px-3 py-2 rounded-lg text-center border border-white/20 text-stone-300 font-medium text-sm">
+                            <svg class="w-4 h-4 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                             Connexion
                         </a>
-                        <a href="{% url 'courses:register' %}" class="block px-3 py-2 rounded-lg text-center bg-brand-copper text-white font-bold text-sm">
+                        <a href="{% url 'courses:register' %}" class="block px-3 py-2 rounded-lg text-center bg-brand-copper text-white font-bold text-sm mt-2">
+                            <svg class="w-4 h-4 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                             S'inscrire
                         </a>
                     </div>
@@ -250,21 +289,34 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-brand-teal border-t border-brand-teal-light/30 mt-12">
+    <!-- Footer -->    <footer class="bg-brand-teal border-t border-brand-teal-light/30 mt-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
-                    <img src="{% static 'geomanager_logo_small.svg' %}" alt="Géomanager" class="h-8 w-auto brightness-200">
+                    <svg width="32" height="26" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" class="h-9 w-auto" style="filter: brightness(1.75);">
+                        <path d="M30 12 L30 52 L48 52 L48 42 L38 42 L38 48 L34 48 L34 16 L48 16 L48 24 L44 24 L44 28 L52 28 L52 12 Z" fill="#c88e6e" />
+                        <path d="M58 12 L58 52 L62 52 L62 22 L70 38 L78 22 L78 52 L82 52 L82 12 L74 12 L70 32 L66 12 Z" fill="#c88e6e" />
+                    </svg>
+                    <span class="text-xl font-bold text-white tracking-tight hidden sm:block">
+                        Geomanager
+                    </span>
                 </div>
-                <div class="flex items-center gap-6 text-sm text-stone-300">
-                    <a href="{% url 'courses:home' %}" class="hover:text-brand-copper transition">Accueil</a>
-                    <a href="{% url 'courses:liste_formations' %}" class="hover:text-brand-copper transition">Formations</a>
-                    <a href="{% url 'courses:verifier_certificat' %}" class="hover:text-brand-copper transition">Vérifier certificat</a>
-                    <a href="{% url 'courses:a_propos' %}" class="hover:text-brand-copper transition">À propos</a>
-                    <a href="{% url 'courses:terms' %}" class="hover:text-brand-copper transition">CGU</a>
+                <nav class="hidden md:flex items-center gap-5">
+                    <a href="{% url 'courses:home' %}" class="text-sm text-stone-300 hover:text-brand-copper transition">Accueil</a>
+                    <a href="{% url 'courses:liste_formations' %}" class="text-sm text-stone-300 hover:text-brand-copper transition">Formations</a>
+                    <a href="{% url 'courses:verifier_certificat' %}" class="text-sm text-stone-300 hover:text-brand-copper transition">Vérifier certificat</a>
+                    <a href="{% url 'courses:a_propos' %}" class="text-sm text-stone-300 hover:text-brand-copper transition">À propos</a>
+                    <a href="{% url 'courses:terms' %}" class="text-sm text-stone-300 hover:text-brand-copper transition">CGU</a>
+                </nav>
+                <p class="text-sm text-stone-400">&copy; 2026 Geomanager</p>
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'courses:login' %}" class="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition">
+                        Connexion
+                    </a>
+                    <a href="{% url 'courses:register' %}" class="px-4 py-1.5 rounded-lg bg-brand-copper hover:bg-brand-copper-dark text-white text-sm font-bold transition">
+                        S'inscrire
+                    </a>
                 </div>
-                <p class="text-sm text-stone-400">&copy; 2026 Géomanager</p>
             </div>
         </div>
     </footer>
