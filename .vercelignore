@@ -33,8 +33,11 @@ tmp/
 .vscode/
 .idea/
 
-# NB : staticfiles/ (sortie de collectstatic local) DOIT être téléversé :
+# NB : staticfiles/ (sortie du collectstatic local) DOIT être téléversé :
 # c'est lui qui alimente la route /static/ -> /staticfiles/ — ne pas l'ignorer.
 # Exécuter `python manage.py collectstatic --noinput` localement avant chaque
-déploiement.  staticfiles_build/ (copie faite sur Vercel par build.sh) est
-# ignorée : les builders legacy ne la montent pas dans l'output servi.
+# déploiement.
+#
+# staticfiles_build/ (copie faite sur Vercel par build.sh) : ignorée, les
+# builders legacy ne la montent pas dans l'output servi.
+staticfiles_build/
