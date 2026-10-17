@@ -13,6 +13,9 @@ dist/
 build/
 *.egg
 
+# Sortie de build Vercel (générée par build.sh)
+staticfiles_build/
+
 # Virtual Environment
 venv/
 .venv/

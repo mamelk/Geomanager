@@ -33,4 +33,6 @@ tmp/
 .vscode/
 .idea/
 
-# NB : staticfiles/ (sortie de collectstatic) DOIT être téléversé — ne pas l'ignorer.
+# Sortie collectstatic : régénérée sur Vercel par build.sh (@vercel/static-build)
+staticfiles/
+staticfiles_build/
