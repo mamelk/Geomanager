@@ -10,6 +10,10 @@
       }
     },
     {
+      "src": "staticfiles/**",
+      "use": "@vercel/static"
+    },
+    {
       "src": "build.sh",
       "use": "@vercel/static-build",
       "config": {
@@ -27,11 +31,11 @@
       "headers": {
         "Cache-Control": "public, max-age=31536000, immutable"
       },
-      "dest": "/staticfiles_build/$1"
+      "dest": "/staticfiles/$1"
     },
     {
       "src": "/staticfiles/(.*)",
-      "dest": "/staticfiles_build/$1"
+      "dest": "/staticfiles/$1"
     },
     {
       "src": "/(.*)",
