@@ -2,7 +2,13 @@
 set -e
 
 echo "🔧 Installation des dépendances..."
-pip install -r requirements.txt
+if [ -n "${VERCEL:-}" ]; then
+  # Image Vercel : Python géré par uv (PEP 668 refuse pip système)
+  uv pip install --system -r requirements.txt \
+    || python -m pip install --break-system-packages -r requirements.txt
+else
+  pip install -r requirements.txt
+fi
 
 echo "🗃️ Exécution des migrations (base de production)..."
 python manage.py migrate --noinput
