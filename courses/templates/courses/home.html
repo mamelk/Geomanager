@@ -5,18 +5,24 @@
 {% block content %}
 
 <!-- ══════════════ HERO ══════════════ -->
-<section class="relative overflow-hidden bg-brand-teal pt-16 sm:pt-20 pb-16 sm:pb-24">
-    <!-- fond : photo de mine -->
+<section class="relative overflow-hidden bg-brand-teal min-h-[30rem] sm:min-h-[34rem] pt-16 sm:pt-20 pb-16 sm:pb-24 flex items-center">
+    <!-- fond : photo de mine (visible sur tous les écrans) -->
     <div class="absolute inset-0" aria-hidden="true">
         {% if mine_photo %}
-            <img src="{{ mine_photo.url }}" alt="" class="w-full h-full object-cover object-center">
+            <img src="{{ mine_photo.url }}" alt=""
+                 class="absolute inset-0 w-full h-full object-cover object-center"
+                 loading="eager" fetchpriority="high" decoding="async">
         {% else %}
-            <picture class="block w-full h-full">
+            <picture>
                 <source srcset="{% static 'img/mine-hero.webp' %}" type="image/webp">
-                <img src="{% static 'img/mine-hero.jpg' %}" alt="Mine a ciel ouvert" class="w-full h-full object-cover object-center">
+                <img src="{% static 'img/mine-hero.jpg' %}" alt="Mine a ciel ouvert"
+                     class="absolute inset-0 w-full h-full object-cover object-center"
+                     loading="eager" fetchpriority="high" decoding="async">
             </picture>
         {% endif %}
-        <div class="absolute inset-0 bg-brand-teal/85"></div>
+        <!-- voile : assez léger pour que la photo reste bien lisible sur petit écran -->
+        <div class="absolute inset-0 bg-brand-teal/65"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-brand-teal/40 via-brand-teal/10 to-brand-teal/30"></div>
     </div>
     <!-- décor : deux belles halos -->
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -24,7 +30,7 @@
         <div class="absolute bottom-0 left-0 w-72 h-72 bg-brand-teal-light/25 rounded-full blur-3xl"></div>
     </div>
 
-    <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-3xl mx-auto">
 
             <!-- texte -->
