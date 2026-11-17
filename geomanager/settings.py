@@ -25,12 +25,12 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-mvkp94m02ek26)8w5mvv+se+-mzh+5ut+63%+hqo-p@mo04&l1')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-dev-only-key-change-in-prod')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -67,6 +67,7 @@ MAISHAPAY_MERCHANT_ID = os.environ.get('MAISHAPAY_MERCHANT_ID', '')
 MAISHAPAY_CALLBACK_URL = os.environ.get('MAISHAPAY_CALLBACK_URL', '')
 MAISHAPAY_MONTANT_ABONNEMENT = 10000  # Montant en CDF
 MAISHAPAY_DUREE_ABONNEMENT_JOURS = 30
+MAISHAPAY_DEMO_MODE = os.environ.get('MAISHAPAY_DEMO_MODE', 'True') == 'True'  # Bypass API en mode démo
 
 ROOT_URLCONF = 'geomanager.urls'
 
@@ -92,6 +93,17 @@ WSGI_APPLICATION = 'geomanager.wsgi.application'
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
 import dj_database_url
+
+# Retirer channel_binding=require si présent (casse la connexion sur Vercel)
+_raw_db_url = os.environ.get('DATABASE_URL', '')
+if 'channel_binding' in _raw_db_url:
+    import re as _re
+    _cleaned = _re.sub(r'[?&]channel_binding=require', '', _raw_db_url)
+    if _cleaned.endswith('?') or _cleaned.endswith('&'):
+        _cleaned = _cleaned.rstrip('?&')
+    os.environ['DATABASE_URL'] = _cleaned
+
+del _raw_db_url
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -138,7 +150,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -147,15 +159,19 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
+LOGIN_URL = 'courses:login'
 LOGIN_REDIRECT_URL = 'courses:dashboard'
 LOGOUT_REDIRECT_URL = 'courses:home'
 
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+# Email — Console en dev, SMTP en prod via variables d'env
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Geomanager <noreply@geomanager.com>')
 
 
 # ═══════════════════════════════════════
@@ -182,5 +198,54 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
     },
 }
+
+
+# ═══════════════════════════════════════
+#  SECURITY HEADERS
+# ═══════════════════════════════════════
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+
+# Vercel / reverse-proxy : Django doit savoir que le HTTPS vient du proxy
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Session
+SESSION_COOKIE_AGE = 86400 * 7  # 7 jours
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# Files upload — plus besoin de limiter puisque les fichiers vont directement vers Cloudinary
+FILE_UPLOAD_MAX_MEMORY_SIZE = 0  # Désactivé : upload client-side vers Cloudinary
+DATA_UPLOAD_MAX_MEMORY_SIZE = 4 * 1024 * 1024  # 4 MB pour les payloads JSON
+
+
+# ═══════════════════════════════════════
+#  CLOUDINARY — Upload direct côté client
+#  Les fichiers (images, vidéos, PDF) sont uploadés
+#  directement depuis le navigateur vers Cloudinary.
+#  Le serveur Django ne stocke que les URLs.
+# ═══════════════════════════════════════
+CLOUDINARY_CLOUD_NAME = (os.environ.get('CLOUDINARY_CLOUD_NAME', '') or os.environ.get('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME', '')).strip()
+CLOUDINARY_UPLOAD_PRESET = (os.environ.get('CLOUDINARY_UPLOAD_PRESET', '') or os.environ.get('NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET', '')).strip()
+# API key/secret optionnels — uniquement si upload signé (non recommandé)
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '')
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')

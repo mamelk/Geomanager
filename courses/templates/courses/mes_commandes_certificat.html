@@ -1,0 +1,77 @@
+{% extends "courses/base.html" %}
+{% block title %}Mes commandes de certificat — Geomanager{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">Mes commandes de certificat</h1>
+    <p class="mt-1 text-stone-500 text-sm">
+        Suivi de vos commandes — les certificats sont délivrés par email par l'administrateur.
+    </p>
+</div>
+
+{% if commandes %}
+<div class="space-y-4">
+    {% for c in commandes %}
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+        <div class="px-5 py-4 bg-gradient-to-r from-brand-teal to-brand-teal-light">
+            <div class="flex items-center justify-between">
+                <span class="text-white/90 text-xs font-semibold uppercase tracking-wide">
+                    Commande #{{ c.id }} — {{ c.tentative.examen.formation.titre }}
+                </span>
+                <span class="text-white text-sm font-bold">{{ c.montant|floatformat:0 }} {{ c.devise }}</span>
+            </div>
+        </div>
+        <div class="p-5">
+            <div class="flex flex-wrap items-center gap-3">
+                {% if c.statut == 'delivree' %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                        ✓ Délivrée — vérifiez votre email ({{ c.email_livraison }})
+                    </span>
+                {% elif c.statut == 'payee' %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                        ⏳ Payée — en attente de délivrance par l'administrateur
+                    </span>
+                {% elif c.statut == 'en_attente_paiement' %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                        💳 En attente de paiement
+                    </span>
+                    <a href="{% url 'courses:payer_certificat' c.id %}"
+                       class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-brand-copper hover:bg-brand-copper-dark text-white text-xs font-bold transition">
+                        Payer maintenant
+                    </a>
+                {% else %}
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                        ✗ Annulée
+                    </span>
+                {% endif %}
+            </div>
+            <div class="flex flex-wrap gap-x-6 gap-y-1 mt-3 text-xs text-stone-400">
+                <span>📦 Examen : {{ c.tentative.examen.titre }}</span>
+                <span>📈 Score : {{ c.tentative.note }}%</span>
+                <span>📧 Email : {{ c.email_livraison }}</span>
+                {% if c.reference_paiement %}<span>🔖 Réf. : {{ c.reference_paiement }}</span>{% endif %}
+                <span>🗓 Commandée le {{ c.date_commande|date:"d/m/Y H:i" }}</span>
+                {% if c.date_delivrance %}<span>✅ Délivrée le {{ c.date_delivrance|date:"d/m/Y H:i" }}</span>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-16 bg-white rounded-2xl border border-stone-100">
+    <svg class="w-16 h-16 mx-auto text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+    </svg>
+    <h3 class="mt-4 text-lg font-medium text-slate-700">Aucune commande pour le moment</h3>
+    <p class="mt-1 text-sm text-stone-400 max-w-md mx-auto">
+        Une fois certifié, vous pouvez commander votre certificat officiel depuis
+        la page « Mes certifications ». Il vous sera ensuite envoyé par email.
+    </p>
+    <a href="{% url 'courses:mes_certifications' %}"
+       class="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-copper hover:bg-brand-copper-dark text-white font-bold text-sm shadow-lg shadow-brand-copper/20 transition-all">
+        Voir mes certifications →
+    </a>
+</div>
+{% endif %}
+{% endblock %}

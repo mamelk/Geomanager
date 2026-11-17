@@ -13,6 +13,9 @@ dist/
 build/
 *.egg
 
+# Sortie de build Vercel (générée par build.sh)
+staticfiles_build/
+
 # Virtual Environment
 venv/
 .venv/
@@ -40,8 +43,25 @@ ngrok.exe
 ngrok.zip
 ngrok.log
 
-# Static files (collectés)
+# Static files (collectés par collectstatic, pas dans le repo)
 staticfiles/
 
-# Migrations (à régénérer)
-# courses/migrations/  # Décommenter si vous voulez les régénérer
+# Fichiers de config hors déploiement
+Procfile
+render.yaml
+geomanager/settings_production.py
+courses/tests.py
+
+# Archives & outils locaux
+geomanager.zip
+skills-lock.json
+.agents/
+.claude/
+
+# Artefacts de déploiement & fichiers locaux (ne jamais commiter)
+.vercel/
+vercel-manifest.json
+vercel-deploy.zip
+static_collect.zip
+get-pip.py
+tmp/

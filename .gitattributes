@@ -1,0 +1,3 @@
+# Les scripts exécutés par le build Vercel doivent rester en LF (sur Windows,
+# core.autocrlf=true les reconvertirait en CRLF et casserait #!/bin/bash sur Linux).
+*.sh text eol=lf
