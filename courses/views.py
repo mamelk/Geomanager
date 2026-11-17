@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -14,6 +15,7 @@ import json
 import hmac
 import hashlib
 import logging
+from decimal import Decimal, InvalidOperation
 import requests as http_requests
 import uuid
 from django.http import Http404, HttpResponse, JsonResponse
@@ -31,7 +33,13 @@ from .services import evaluer_examen, generer_certificat_pdf
 
 
 def is_formateur(user):
-    return user.is_authenticated and (user.is_staff or user.username.lower() == 'admin')
+    """Privilèges formateur/admin : uniquement les comptes staff.
+
+    Ne JAMAIS se baser sur le nom d'utilisateur : n'importe qui peut s'inscrire
+    sous un nom comme "Admin" et hériterait sinon du back-office et des
+    fonctions de gestion des abonnements.
+    """
+    return bool(user.is_authenticated and (user.is_staff or user.is_superuser))
 
 
 # ═══════════════════════════════════════
@@ -75,15 +83,33 @@ def media_photo_upload(request):
             messages.error(request, 'Aucun fichier sélectionné.')
             return redirect('courses:media_photo_upload')
 
-        # Type autorisé : photo
-        if fichier.content_type not in ('image/jpeg', 'image/png', 'image/webp'):
+        # Taille maximale : 8 Mo
+        if fichier.size > 8 * 1024 * 1024:
+            messages.error(request, 'Fichier trop volumineux (8 Mo maximum).')
+            return redirect('courses:media_photo_upload')
+
+        # Vérification du contenu réel : le content_type envoyé par le navigateur
+        # est déclaratif, donc falsifiable (un SVG déguisé en image/png servirait
+        # ensuite du JavaScript depuis le domaine de l'application).
+        try:
+            from PIL import Image
+            image = Image.open(fichier)
+            image.verify()
+            format_image = (image.format or '').upper()
+        except Exception:
+            logger.warning(f'Upload média refusé pour {request.user.username}: contenu non image')
+            messages.error(request, 'Format non supporté. Envoyez un JPEG, PNG ou WebP.')
+            return redirect('courses:media_photo_upload')
+
+        extensions = {'JPEG': 'jpg', 'PNG': 'png', 'WEBP': 'webp'}
+        ext = extensions.get(format_image)
+        if not ext:
             messages.error(request, 'Format non supporté. Envoyez un JPEG, PNG ou WebP.')
             return redirect('courses:media_photo_upload')
 
         # 1) Construction du chemin relatif : photo/AAAA/AA/BBBB.jpg
-        ext = fichier.name.rsplit('.', 1)[-1].lower()
-        if '.' in fichier.name and not ext:
-            ext = 'bin'
+        # L'extension est déduite du contenu validé, jamais du nom du fichier.
+        fichier.seek(0)
         safe_name = f"{uuid.uuid4().hex}.{ext}"
         today = timezone.now()
         rel = f"photo/{today.year}/{today.month:02d}/{safe_name}"
@@ -210,10 +236,15 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            if is_formateur(user):
-                next_url = request.GET.get('next', 'courses:admin_dashboard')
-            else:
-                next_url = request.GET.get('next', 'courses:dashboard')
+            default_url = 'courses:admin_dashboard' if is_formateur(user) else 'courses:dashboard'
+            # Anti open-redirect : on n'accepte qu'une destination locale
+            next_url = request.POST.get('next') or request.GET.get('next') or ''
+            if not next_url or not url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                next_url = default_url
             return redirect(next_url)
         else:
             messages.error(request, 'Nom d\'utilisateur ou mot de passe incorrect.')
@@ -253,9 +284,10 @@ def register_view(request):
             errors.append('Les mots de passe ne correspondent pas.')
         if len(password1) < 8:
             errors.append('Le mot de passe doit contenir au moins 8 caractères.')
-        if User.objects.filter(username=username).exists():
+        # Comparaison insensible à la casse : évite les faux comptes type "Admin"
+        if User.objects.filter(username__iexact=username).exists():
             errors.append('Ce nom d\'utilisateur est déjà pris.')
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(email__iexact=email).exists():
             errors.append('Cet email est déjà utilisé.')
 
         if errors:
@@ -496,13 +528,26 @@ def payer_certificat(request, commande_id):
         secret_key = getattr(settings, 'MAISHAPAY_SECRET_KEY', '')
         merchant_id = getattr(settings, 'MAISHAPAY_MERCHANT_ID', '')
 
-        # Mode démo : confirmation immédiate (pas de clé API ou démo forcée)
-        if getattr(settings, 'MAISHAPAY_DEMO_MODE', False) or not (api_url and public_key and secret_key):
+        # Mode démo : uniquement en développement
+        if _paiement_demo_autorise():
             transaction.marquer_reussi({'mode': 'demo', 'message': 'Paiement certificat (mode démo)'})
             messages.success(
                 request,
                 f'✅ Paiement de {commande.montant} {commande.devise} confirmé (mode démo). '
                 f'Votre certificat sera délivré par email après validation par l\'administrateur.'
+            )
+            return redirect('courses:mes_commandes_certificat')
+
+        # Passerelle non configurée : on échoue proprement (jamais d'activation gratuite)
+        if not _passerelle_paiement_configuree():
+            logger.error(
+                f"Paiement certificat {reference}: passerelle MaishaPay non configurée — refusé"
+            )
+            transaction.marquer_echoue({'error': 'Passerelle de paiement non configurée'})
+            messages.error(
+                request,
+                "Le paiement Mobile Money n'est pas disponible pour le moment. "
+                "Contactez l'administrateur."
             )
             return redirect('courses:mes_commandes_certificat')
 
@@ -765,6 +810,23 @@ import uuid
 from .models import Abonnement, TransactionPaiement, ProlongationAbonnement, ParametrePlateforme
 
 
+def _paiement_demo_autorise():
+    """Le mode démo n'est autorisé QU'EN DÉVELOPPEMENT et si demandé explicitement.
+
+    En production, un mode démo activé par défaut (ou une clé API manquante)
+    donnait un abonnement gratuit à quiconque cliquait sur « Payer ».
+    """
+    return bool(getattr(settings, 'MAISHAPAY_DEMO_MODE', False) and settings.DEBUG)
+
+
+def _passerelle_paiement_configuree():
+    return all([
+        getattr(settings, 'MAISHAPAY_API_URL', ''),
+        getattr(settings, 'MAISHAPAY_API_KEY', ''),
+        getattr(settings, 'MAISHAPAY_SECRET_KEY', ''),
+    ])
+
+
 def _verifier_signature_maishapay(payload_bytes, signature_header):
     """
     Vérifie la signature HMAC envoyée par MaishaPay dans le header X-MaishaPay-Signature.
@@ -878,8 +940,8 @@ def initier_paiement(request):
     provider_map = {'airtel': 'AIRTEL', 'vodacom': 'MPESA', 'orange': 'ORANGE', 'africell': 'AFRICELL'}
     provider_api = provider_map.get(reseau, reseau.upper())
 
-    # ── Mode démo : bypass API si MAISHAPAY_DEMO_MODE=True ──
-    if getattr(settings, 'MAISHAPAY_DEMO_MODE', False):
+    # ── Mode démo : uniquement en développement ──
+    if _paiement_demo_autorise():
         logger.info(f"Transaction {reference}: MODE DÉMO actif — activation immédiate")
         transaction.marquer_reussi({
             'mode': 'demo',
@@ -952,13 +1014,15 @@ def initier_paiement(request):
             transaction.marquer_echoue({'error': str(e)})
             messages.error(request, f'Erreur de connexion au service de paiement : {str(e)}')
     else:
-        # ── Mode démo : activation immédiate si pas de clé API ──
-        logger.info(f"Transaction {reference}: mode démo (pas de clé API)")
-        transaction.marquer_reussi({'mode': 'demo', 'message': 'Clé API non configurée — activation démo'})
-        messages.success(
+        # Passerelle non configurée : échec explicite, jamais d'activation gratuite
+        logger.error(
+            f"Transaction {reference}: passerelle MaishaPay non configurée — paiement refusé"
+        )
+        transaction.marquer_echoue({'error': 'Passerelle de paiement non configurée'})
+        messages.error(
             request,
-            f'✅ Paiement de {montant} {params.monnaie} confirmé (mode démo). '
-            f'Votre abonnement est actif pour {params.duree_abonnement_jours} jours.'
+            "Le paiement Mobile Money n'est pas disponible pour le moment. "
+            "Contactez l'administrateur."
         )
 
     # Stocker la référence dans la session pour le polling côté client
@@ -1042,6 +1106,28 @@ def callback_maishapay(request):
     except TransactionPaiement.DoesNotExist:
         logger.warning(f"Callback MaishaPay: transaction {reference} introuvable")
         return HttpResponse('Transaction not found', status=404)
+
+    # ── Contrôle du montant et de la devise : empêche un callback sous-payé ──
+    montant_recu = data.get('amount', data.get('montant'))
+    if montant_recu is not None:
+        try:
+            if Decimal(str(montant_recu)) != Decimal(transaction.montant):
+                logger.error(
+                    f"Callback MaishaPay {reference}: montant {montant_recu} "
+                    f"≠ attendu {transaction.montant} — rejeté"
+                )
+                return HttpResponse('Amount mismatch', status=400)
+        except (InvalidOperation, ValueError, TypeError):
+            logger.error(f"Callback MaishaPay {reference}: montant illisible — rejeté")
+            return HttpResponse('Invalid amount', status=400)
+
+    devise_recue = data.get('currency', data.get('devise'))
+    if devise_recue and str(devise_recue).strip().upper() != str(transaction.devise).strip().upper():
+        logger.error(
+            f"Callback MaishaPay {reference}: devise {devise_recue} "
+            f"≠ attendue {transaction.devise} — rejeté"
+        )
+        return HttpResponse('Currency mismatch', status=400)
 
     # ── Mise à jour du statut ──
     if status in ('successful', 'completed', 'success'):
@@ -1819,6 +1905,15 @@ def video_player_view(request, formation_id):
 @login_required
 def marquer_video_vue_view(request, video_id):
     video = get_object_or_404(VideoLecon, id=video_id)
+
+    # Inscription obligatoire : sinon n'importe quel compte pourrait gonfler
+    # sa progression (et donc débloquer les examens) sans suivre la formation.
+    if not Inscription.objects.filter(
+        etudiant=request.user, formation=video.formation
+    ).exists():
+        messages.warning(request, 'Vous devez être inscrit pour accéder à cette vidéo.')
+        return redirect('courses:formation_detail', formation_id=video.formation.id)
+
     progression, created = ProgressionLecon.objects.get_or_create(
         etudiant=request.user, video=video,
         defaults={'vue': True, 'date_visionnage': timezone.now()}
@@ -1864,6 +1959,12 @@ def detail_lecon(request, lecon_id):
 def passer_examen(request, examen_id):
     examen = get_object_or_404(Examen, id=examen_id)
     formation = examen.formation
+
+    # Inscription obligatoire avant de composer un examen
+    if not Inscription.objects.filter(etudiant=request.user, formation=formation).exists():
+        messages.warning(request, 'Vous devez être inscrit à cette formation pour passer son examen.')
+        return redirect('courses:formation_detail', formation_id=formation.id)
+
     questions = examen.questions.prefetch_related('options').all()
 
     # ── Durée dynamique : nb_questions × 2 minutes ──

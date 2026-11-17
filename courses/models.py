@@ -392,6 +392,12 @@ class TransactionPaiement(models.Model):
         return f"TX#{self.id} — {self.reference_externe} — {self.statut} — {self.montant} {self.devise}"
 
     def marquer_reussi(self, reponse=None):
+        # Idempotence : un callback rejoué ne doit pas re-créditer l'abonnement
+        if self.statut == 'reussi':
+            if reponse:
+                self.metadata_reponse = reponse
+                self.save(update_fields=['metadata_reponse', 'date_mise_a_jour'])
+            return
         self.statut = 'reussi'
         if reponse:
             self.metadata_reponse = reponse

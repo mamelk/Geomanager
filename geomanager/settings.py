@@ -25,12 +25,23 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-dev-only-key-change-in-prod')
+_INSECURE_SECRET_KEY = 'django-insecure-dev-only-key-change-in-prod'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', _INSECURE_SECRET_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['*']
+# Hôtes autorisés : liste explicite (évite l'empoisonnement de l'en-tête Host,
+# qui permettait de détourner les liens de réinitialisation de mot de passe).
+# Pour un déploiement de prévisualisation, ajouter l'hôte via DJANGO_ALLOWED_HOSTS.
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.environ.get(
+        'DJANGO_ALLOWED_HOSTS',
+        'geo-manager.vercel.app,localhost,127.0.0.1,[::1]',
+    ).split(',')
+    if h.strip()
+]
 
 
 # Application definition
@@ -67,7 +78,9 @@ MAISHAPAY_MERCHANT_ID = os.environ.get('MAISHAPAY_MERCHANT_ID', '')
 MAISHAPAY_CALLBACK_URL = os.environ.get('MAISHAPAY_CALLBACK_URL', '')
 MAISHAPAY_MONTANT_ABONNEMENT = 10000  # Montant en CDF
 MAISHAPAY_DUREE_ABONNEMENT_JOURS = 30
-MAISHAPAY_DEMO_MODE = os.environ.get('MAISHAPAY_DEMO_MODE', 'True') == 'True'  # Bypass API en mode démo
+# Mode démo : DÉSACTIVÉ par défaut. Il permet d'activer un abonnement sans
+# paiement et n'est utilisable qu'en développement (voir _paiement_demo_autorise).
+MAISHAPAY_DEMO_MODE = os.environ.get('MAISHAPAY_DEMO_MODE', 'False') == 'True'
 
 ROOT_URLCONF = 'geomanager.urls'
 
@@ -220,6 +233,15 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
+
+# Alerte critique : sans DJANGO_SECRET_KEY en production, les cookies de session
+# et les jetons CSRF peuvent être forgés (clé publique de développement).
+if not DEBUG and SECRET_KEY == _INSECURE_SECRET_KEY:
+    import sys as _sys
+    print(
+        'CRITICAL: DJANGO_SECRET_KEY absent en production — les sessions sont forgeables !',
+        file=_sys.stderr,
+    )
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
