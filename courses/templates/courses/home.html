@@ -2,10 +2,12 @@
 
 {% block title %}Geomanager — Académie de l'exploration et de l'exploitation minière{% endblock %}
 
+{% block main_class %}w-full{% endblock %}
+
 {% block content %}
 
 <!-- ══════════════ HERO ══════════════ -->
-<section class="relative overflow-hidden bg-brand-teal min-h-[30rem] sm:min-h-[34rem] pt-16 sm:pt-20 pb-16 sm:pb-24 flex items-center">
+<section class="relative overflow-hidden bg-brand-teal min-h-[70vh] sm:min-h-[75vh] pt-24 sm:pt-28 pb-24 sm:pb-32 flex items-center">
     <!-- fond : photo de mine (visible sur tous les écrans) -->
     <div class="absolute inset-0" aria-hidden="true">
         {% if mine_photo %}
@@ -21,9 +23,10 @@
                      loading="eager" fetchpriority="high" decoding="async">
             </picture>
         {% endif %}
-        <!-- voile : assez léger pour que la photo reste bien lisible sur petit écran -->
-        <div class="absolute inset-0 bg-brand-teal/65"></div>
-        <div class="absolute inset-0 bg-gradient-to-b from-brand-teal/40 via-brand-teal/10 to-brand-teal/30"></div>
+        <!-- voile léger : la photo doit rester bien visible, le texte est protégé par une ombre -->
+        <div class="absolute inset-0 bg-brand-teal/25"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-brand-teal/70 via-brand-teal/20 to-transparent"></div>
+        <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-brand-teal/40 to-transparent"></div>
     </div>
     <!-- décor : deux belles halos -->
     <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -35,7 +38,7 @@
         <div class="max-w-3xl mx-auto">
 
             <!-- texte -->
-            <div class="text-center lg:text-left">
+            <div class="text-center lg:text-left [text-shadow:0_2px_12px_rgba(0,0,0,0.55)]">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-copper/10 border border-brand-copper/20 mb-6">
                     <span class="w-2 h-2 rounded-full bg-brand-copper animate-pulse"></span>
                     <span class="text-brand-copper text-sm font-medium tracking-wide">Expert en exploration et géologie minière</span>
@@ -100,6 +103,8 @@
         </svg>
     </div>
 </section>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
 <!-- ══════════════ STATISTIQUES ══════════════ -->
 <section class="py-12">
@@ -275,5 +280,7 @@
         </div>
     </div>
 </section>
+
+</div>
 
 {% endblock %}
