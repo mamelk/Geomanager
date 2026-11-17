@@ -10,6 +10,7 @@
     <div class="absolute inset-0" aria-hidden="true">
         {% if mine_photo %}
             <img src="{{ mine_photo.url }}" alt=""
+                 onerror="this.onerror=null;this.src='{% static 'img/mine-hero.jpg' %}';"
                  class="absolute inset-0 w-full h-full object-cover object-center"
                  loading="eager" fetchpriority="high" decoding="async">
         {% else %}
